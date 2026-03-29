@@ -5,8 +5,8 @@ def verify_user(user_id, password):
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
 
-    query = "SELECT userID, firstName, lastName, role FROM User WHERE userID = %s"
-    cursor.execute(query, (user_id, password))
+    query = "SELECT userID, firstName, lastName, role, password FROM User WHERE userID = %s"
+    cursor.execute(query, (user_id,))
     user = cursor.fetchone()
 
     cursor.close()
