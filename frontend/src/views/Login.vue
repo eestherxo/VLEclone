@@ -56,22 +56,21 @@ const login = async () => {
   error.value = ''
   loading.value = true
   try {
-    // Step 1 — get token from backend
     const res = await authService.login({
       userID: Number(form.value.userID),
       password: form.value.password,
     })
 
+    // ✅ Clear any previous user's data first
+    localStorage.clear()
+
     const token = res.data.access_token
     localStorage.setItem('token', token)
 
-    // Step 2 — fetch real user details using the token
-    // The interceptor in api.js will attach the token automatically
     try {
       const meRes = await api.get('/auth/me')
       localStorage.setItem('user', JSON.stringify(meRes.data))
     } catch {
-      // /auth/me not yet implemented — decode JWT as fallback
       const payload = JSON.parse(atob(token.split('.')[1]))
       localStorage.setItem('user', JSON.stringify({
         id:       payload.sub,

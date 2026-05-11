@@ -5,9 +5,9 @@
       <SideBar />
     </template>
     <div :class="isAuthenticated ? 'page-content' : ''">
-      <router-view v-slot="{ Component }">
+      <router-view v-slot="{ Component, route }">
         <transition name="fade" mode="out-in">
-          <component :is="Component" />
+          <component :is="Component" :key="route.path" />
         </transition>
       </router-view>
     </div>
@@ -16,10 +16,8 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
 import NavBar from './components/NavBar.vue'
 import SideBar from './components/SideBar.vue'
 
-const router = useRouter()
 const isAuthenticated = computed(() => !!localStorage.getItem('token'))
 </script>

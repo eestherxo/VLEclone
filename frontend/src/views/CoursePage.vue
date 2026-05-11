@@ -2,21 +2,26 @@
   <div class="course-page">
     <div v-if="loading" class="spinner"></div>
     <template v-else>
-      <!-- Course Hero -->
+
+      <!-- Hero -->
       <div class="course-hero" :style="{ background: heroColor }">
         <div class="hex-overlay"></div>
         <div class="container hero-inner">
           <button class="back-btn" @click="$router.push('/dashboard')">← My Courses</button>
           <div class="hero-content">
-            <span class="course-code-badge">{{ course.code }}</span>
-            <h1>{{ course.name }}</h1>
-            <p class="hero-meta">{{ course.semester || 'S2_2025/26' }} · COMP Undergraduate Courses</p>
+            <span class="course-code-badge">{{ course.courseCode || course.code }}</span>
+            <h1>{{ course.courseName || course.name }}</h1>
+            <div class="hero-meta-row">
+              <span v-if="isAdmin" class="role-chip admin">⚙️ Admin · Lecturer</span>
+              <span v-else-if="isLecturer" class="role-chip lecturer">🎓 Lecturer</span>
+              <span v-else class="role-chip student">📚 Student</span>
+            </div>
             <div class="hero-actions" v-if="isStudent && !enrolled">
               <button class="btn btn-gold" @click="enrollCourse" :disabled="enrolling">
-                {{ enrolling ? 'Enrolling…' : 'Enrol in Course' }}
+                {{ enrolling ? 'Enrolling…' : '+ Enrol in Course' }}
               </button>
             </div>
-            <div class="hero-actions" v-else-if="enrolled">
+            <div v-else-if="isStudent">
               <span class="badge badge-green">✓ Enrolled</span>
             </div>
           </div>
@@ -27,36 +32,36 @@
       <div class="tab-bar">
         <div class="container">
           <div class="tabs">
-            <button
-              v-for="tab in tabs" :key="tab.key"
+            <button v-for="tab in visibleTabs" :key="tab.key"
               :class="['tab', activeTab === tab.key && 'active']"
-              @click="activeTab = tab.key"
-            >
-              <span>{{ tab.icon }}</span> {{ tab.label }}
+              @click="activeTab = tab.key; loadTab(tab.key)">
+              {{ tab.icon }} {{ tab.label }}
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Tab Content -->
       <div class="container tab-body">
 
-        <!-- Content -->
+        <!-- CONTENT TAB -->
         <div v-if="activeTab === 'content'">
           <div class="section-header">
             <h2>Course Content</h2>
-            <button v-if="isLecturer" class="btn btn-primary btn-sm" @click="showAddContent = true">+ Add Content</button>
+            <button v-if="canManageCourse" class="btn btn-primary btn-sm" @click="showAddContent = true">+ Add Content</button>
           </div>
           <div v-if="contentLoading" class="spinner"></div>
-          <div v-else-if="contentItems.length === 0" class="empty-tab">No content uploaded yet.</div>
+          <div v-else-if="!contentItems.length" class="empty-tab">
+            <div class="empty-icon">📖</div>
+            <p>No content uploaded yet{{ canManageCourse ? ' — add some using the button above.' : '.' }}</p>
+          </div>
           <div v-else>
             <div v-for="section in groupedContent" :key="section.name" class="content-section">
-              <div class="section-title">📁 {{ section.name }}</div>
+              <div class="section-label">📁 {{ section.name }}</div>
               <div v-for="item in section.items" :key="item.id" class="content-item">
                 <span class="content-icon">{{ contentIcon(item.type) }}</span>
                 <div class="content-info">
                   <div class="content-name">{{ item.title }}</div>
-                  <div class="text-sm text-muted">{{ item.type }} · Added {{ formatDate(item.created_at) }}</div>
+                  <div class="text-sm text-muted">{{ item.type }}</div>
                 </div>
                 <a v-if="item.url" :href="item.url" target="_blank" class="btn btn-outline btn-sm">Open</a>
               </div>
@@ -64,52 +69,84 @@
           </div>
         </div>
 
-        <!-- Assignments -->
+        <!-- ASSIGNMENTS TAB -->
         <div v-if="activeTab === 'assignments'">
           <div class="section-header">
             <h2>Assignments</h2>
-            <button v-if="isLecturer" class="btn btn-primary btn-sm" @click="showAddAssignment = true">+ New Assignment</button>
+            <button v-if="canManageCourse" class="btn btn-primary btn-sm" @click="showAddAssignment = true">+ New Assignment</button>
           </div>
+
+          <!-- Grade summary for students -->
+          <div v-if="isStudent && assignments.length" class="grade-bar">
+            <div class="grade-stat">
+              <div class="grade-val">{{ avgGrade }}%</div>
+              <div class="grade-label">Average</div>
+            </div>
+            <div class="grade-stat">
+              <div class="grade-val">{{ submittedCount }}/{{ assignments.length }}</div>
+              <div class="grade-label">Submitted</div>
+            </div>
+            <div class="grade-progress-wrap">
+              <div class="progress-bar"><div class="progress-fill" :style="{ width: avgGrade + '%' }"></div></div>
+              <span class="text-sm" style="color:rgba(255,255,255,.7)">Overall progress</span>
+            </div>
+          </div>
+
           <div v-if="assignLoading" class="spinner"></div>
-          <div v-else-if="assignments.length === 0" class="empty-tab">No assignments posted yet.</div>
+          <div v-else-if="!assignments.length" class="empty-tab">
+            <div class="empty-icon">📝</div>
+            <p>No assignments yet{{ canManageCourse ? ' — create one above.' : '.' }}</p>
+          </div>
           <div v-else class="assign-list">
-            <div v-for="a in assignments" :key="a.id" class="assign-card card">
-              <div class="card-body">
-                <div class="flex justify-between items-center">
+            <div v-for="a in assignments" :key="a.id" class="assign-card card card-body">
+              <div class="assign-top">
+                <div>
                   <h3 class="assign-title">{{ a.title }}</h3>
-                  <span :class="['badge', dueBadge(a.due_date).class]">{{ dueBadge(a.due_date).label }}</span>
+                  <p class="text-muted text-sm mt-1">{{ a.description }}</p>
                 </div>
-                <p class="text-muted text-sm mt-2">{{ a.description }}</p>
-                <div class="assign-footer">
-                  <span class="text-sm text-muted">Due: {{ formatDate(a.due_date) }}</span>
-                  <div class="flex gap-2">
-                    <button v-if="isStudent" class="btn btn-primary btn-sm" @click="openSubmit(a)">Submit</button>
-                    <button v-if="isLecturer" class="btn btn-outline btn-sm" @click="openGrade(a)">Grade</button>
-                  </div>
-                </div>
+                <span :class="['badge', statusBadge(a).cls]">{{ statusBadge(a).label }}</span>
+              </div>
+              <div class="assign-meta">
+                <span class="meta-chip">📅 Due: {{ formatDate(a.due_date || a.dueDate) }}</span>
+                <span class="meta-chip">🏆 Weight: {{ a.weight || 100 }}%</span>
+                <span v-if="a.my_grade !== undefined" class="meta-chip grade-chip">Grade: <strong>{{ a.my_grade }}%</strong></span>
+              </div>
+              <div class="assign-actions">
+                <!-- Student actions -->
+                <template v-if="isStudent">
+                  <button class="btn btn-primary btn-sm" :disabled="!!a.my_submission" @click="openSubmit(a)">
+                    {{ a.my_submission ? '✓ Submitted' : 'Submit Assignment' }}
+                  </button>
+                </template>
+                <!-- Lecturer/Admin actions -->
+                <template v-if="canManageCourse">
+                  <button class="btn btn-outline btn-sm" @click="openGrade(a)">
+                    📋 Grade Submissions ({{ a.submission_count || 0 }})
+                  </button>
+                </template>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Forums -->
+        <!-- FORUMS TAB -->
         <div v-if="activeTab === 'forums'">
           <div class="section-header">
             <h2>Forums</h2>
             <button class="btn btn-primary btn-sm" @click="showAddForum = true">+ New Forum</button>
           </div>
           <div v-if="forumLoading" class="spinner"></div>
-          <div v-else-if="forums.length === 0" class="empty-tab">No forums created yet.</div>
+          <div v-else-if="!forums.length" class="empty-tab">
+            <div class="empty-icon">💬</div>
+            <p>No forums yet — start the first discussion!</p>
+          </div>
           <div v-else class="forum-list">
-            <div
-              v-for="f in forums" :key="f.id"
-              class="forum-item card"
-              @click="$router.push(`/course/${courseId}/forums/${f.id}`)"
-            >
+            <div v-for="f in forums" :key="f.id || f.forumID" class="forum-item card"
+              @click="$router.push(`/course/${courseCode}/forums/${f.id || f.forumID}`)">
               <div class="card-body flex items-center gap-3">
                 <div class="forum-icon">💬</div>
                 <div class="flex-1">
-                  <div class="forum-name">{{ f.name || f.title }}</div>
+                  <div class="forum-name">{{ f.title || f.name || f.forumName }}</div>
                   <div class="text-sm text-muted">{{ f.thread_count || 0 }} threads</div>
                 </div>
                 <span class="row-arrow">›</span>
@@ -118,37 +155,57 @@
           </div>
         </div>
 
-        <!-- Members -->
+        <!-- MEMBERS TAB -->
         <div v-if="activeTab === 'members'">
           <div class="section-header"><h2>Course Members</h2></div>
           <div v-if="membersLoading" class="spinner"></div>
+          <div v-else-if="!members.length" class="empty-tab">No members found.</div>
           <div v-else class="members-grid">
-            <div v-for="m in members" :key="m.id" class="member-card card card-body">
-              <div class="member-avatar">{{ m.username.slice(0,2).toUpperCase() }}</div>
-              <div class="member-name">{{ m.username }}</div>
-              <span :class="['badge', m.role === 'lecturer' ? 'badge-gold' : 'badge-blue']">{{ m.role }}</span>
+            <div v-for="(m, i) in members" :key="i" class="member-card card card-body">
+              <div class="member-avatar" :style="{ background: avatarColor(m) }">{{ memberInitials(m) }}</div>
+              <div class="member-name">{{ memberName(m) }}</div>
+              <span class="badge badge-blue">Member</span>
             </div>
           </div>
         </div>
 
-        <!-- Calendar -->
+        <!-- CALENDAR TAB -->
         <div v-if="activeTab === 'calendar'">
           <div class="section-header">
             <h2>Calendar Events</h2>
-            <button v-if="isLecturer || isAdmin" class="btn btn-primary btn-sm" @click="showAddEvent = true">+ Add Event</button>
+            <button v-if="canManageCourse" class="btn btn-primary btn-sm" @click="showAddEvent = true">+ Add Event</button>
           </div>
           <div v-if="eventsLoading" class="spinner"></div>
-          <div v-else-if="events.length === 0" class="empty-tab">No events scheduled.</div>
+          <div v-else-if="!events.length" class="empty-tab">
+            <div class="empty-icon">📅</div>
+            <p>No events scheduled{{ canManageCourse ? ' — add one above.' : '.' }}</p>
+          </div>
           <div v-else class="events-list">
-            <div v-for="e in events" :key="e.id" class="event-item card card-body flex gap-3 items-center">
+            <div v-for="e in events" :key="e.id || e.eventID" class="event-item card card-body flex gap-3 items-center">
               <div class="event-date-box">
-                <div class="event-month">{{ eventMonth(e.date) }}</div>
-                <div class="event-day">{{ eventDay(e.date) }}</div>
+                <div class="event-month">{{ eventMonth(e.date || e.eventDate) }}</div>
+                <div class="event-day">{{ eventDay(e.date || e.eventDate) }}</div>
               </div>
               <div>
-                <div class="font-medium">{{ e.title }}</div>
+                <div class="font-medium">{{ e.title || e.eventName }}</div>
                 <div class="text-sm text-muted">{{ e.description }}</div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ADMIN TAB (admin only) -->
+        <div v-if="activeTab === 'admin'">
+          <div class="section-header"><h2>Course Administration</h2></div>
+          <div class="admin-grid">
+            <div class="card card-body">
+              <h3 class="admin-card-title">Assign Lecturer</h3>
+              <p class="text-sm text-muted mt-1">Assign a lecturer to this course</p>
+              <div class="form-group" style="margin-top:16px">
+                <label class="form-label">Lecturer ID</label>
+                <input v-model="assignForm.lecturerId" type="number" class="form-control" placeholder="Enter lecturer's ID number" />
+              </div>
+              <button class="btn btn-primary" @click="doAssignLecturer">Assign Lecturer</button>
             </div>
           </div>
         </div>
@@ -156,33 +213,114 @@
       </div>
     </template>
 
-    <!-- Submit Assignment Modal -->
-    <div v-if="showSubmit" class="modal-backdrop" @click.self="showSubmit = false">
+    <!-- ── MODALS ── -->
+
+    <!-- Add Content -->
+    <div v-if="showAddContent" class="modal-backdrop" @click.self="showAddContent = false">
       <div class="modal">
-        <div class="modal-header"><h3>Submit: {{ selectedAssignment?.title }}</h3><button class="close-btn" @click="showSubmit = false">✕</button></div>
+        <div class="modal-header"><h3>Add Content</h3><button class="close-btn" @click="showAddContent = false">✕</button></div>
         <div class="modal-body">
-          <div class="form-group">
-            <label class="form-label">Submission Link / Notes</label>
-            <textarea v-model="submission.content" class="form-control" rows="4" placeholder="Paste your link or write your submission notes…"></textarea>
+          <div class="form-group"><label class="form-label">Title</label><input v-model="newContent.title" class="form-control" placeholder="e.g. Week 1 Slides" /></div>
+          <div class="form-group"><label class="form-label">Type</label>
+            <select v-model="newContent.type" class="form-control">
+              <option value="link">Link</option><option value="file">File</option><option value="slide">Slides</option>
+            </select>
           </div>
+          <div class="form-group"><label class="form-label">URL</label><input v-model="newContent.url" class="form-control" placeholder="https://…" /></div>
+          <div class="form-group"><label class="form-label">Section</label><input v-model="newContent.section" class="form-control" placeholder="e.g. Week 1" /></div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-outline" @click="showSubmit = false">Cancel</button>
-          <button class="btn btn-primary" @click="submitAssignment">Submit</button>
+          <button class="btn btn-outline" @click="showAddContent = false">Cancel</button>
+          <button class="btn btn-primary" @click="addContent">Add</button>
         </div>
       </div>
     </div>
 
-    <!-- Add Forum Modal -->
+    <!-- New Assignment -->
+    <div v-if="showAddAssignment" class="modal-backdrop" @click.self="showAddAssignment = false">
+      <div class="modal">
+        <div class="modal-header"><h3>New Assignment</h3><button class="close-btn" @click="showAddAssignment = false">✕</button></div>
+        <div class="modal-body">
+          <div v-if="assignError" class="alert alert-error">{{ assignError }}</div>
+          <div class="form-group"><label class="form-label">Title</label><input v-model="newAssign.title" class="form-control" /></div>
+          <div class="form-group"><label class="form-label">Description</label><textarea v-model="newAssign.description" class="form-control" rows="3"></textarea></div>
+          <div class="form-group"><label class="form-label">Due Date</label><input v-model="newAssign.due_date" type="datetime-local" class="form-control" /></div>
+          <div class="form-group"><label class="form-label">Weight (%)</label><input v-model="newAssign.weight" type="number" class="form-control" placeholder="100" /></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" @click="showAddAssignment = false">Cancel</button>
+          <button class="btn btn-primary" @click="createAssignment" :disabled="creatingAssign">{{ creatingAssign ? 'Creating…' : 'Create' }}</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit Assignment -->
+    <div v-if="showSubmit" class="modal-backdrop" @click.self="showSubmit = false">
+      <div class="modal">
+        <div class="modal-header"><h3>Submit: {{ selectedAssignment?.title }}</h3><button class="close-btn" @click="showSubmit = false">✕</button></div>
+        <div class="modal-body">
+          <div v-if="submitError" class="alert alert-error">{{ submitError }}</div>
+          <div class="form-group"><label class="form-label">Submission Link / Notes</label>
+            <textarea v-model="submission.content" class="form-control" rows="4" placeholder="Paste your GitHub / Drive link or notes…"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" @click="showSubmit = false">Cancel</button>
+          <button class="btn btn-primary" @click="submitAssignment" :disabled="submitting">{{ submitting ? 'Submitting…' : 'Submit' }}</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grade Submissions -->
+    <div v-if="showGrade" class="modal-backdrop" @click.self="showGrade = false">
+      <div class="modal modal-lg">
+        <div class="modal-header"><h3>Grade: {{ selectedAssignment?.title }}</h3><button class="close-btn" @click="showGrade = false">✕</button></div>
+        <div class="modal-body">
+          <div v-if="!gradeSubmissions.length" class="empty-tab">No submissions yet.</div>
+          <div v-else>
+            <div v-for="s in gradeSubmissions" :key="s.student_id" class="grade-row">
+              <div class="student-info">
+                <div class="student-avatar">{{ String(s.username || s.student_id || '?').slice(0,2).toUpperCase() }}</div>
+                <span class="font-medium">{{ s.username || s.student_id }}</span>
+              </div>
+              <div class="sub-content text-sm text-muted">{{ String(s.content || '').slice(0, 60) }}…</div>
+              <div class="grade-input-wrap">
+                <input v-model="s.inputGrade" type="number" min="0" max="100" class="form-control grade-input" placeholder="0–100" />
+                <button class="btn btn-primary btn-sm" @click="submitGrade(s)">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- New Forum -->
     <div v-if="showAddForum" class="modal-backdrop" @click.self="showAddForum = false">
       <div class="modal">
         <div class="modal-header"><h3>Create Forum</h3><button class="close-btn" @click="showAddForum = false">✕</button></div>
         <div class="modal-body">
-          <div class="form-group"><label class="form-label">Forum Title</label><input v-model="newForum.title" class="form-control" placeholder="e.g. Week 1 Discussion" /></div>
+          <div class="form-group"><label class="form-label">Title</label><input v-model="newForum.title" class="form-control" placeholder="e.g. Week 1 Discussion" /></div>
+          <div class="form-group"><label class="form-label">Description</label><textarea v-model="newForum.description" class="form-control" rows="2"></textarea></div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-outline" @click="showAddForum = false">Cancel</button>
           <button class="btn btn-primary" @click="createForum">Create</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Event -->
+    <div v-if="showAddEvent" class="modal-backdrop" @click.self="showAddEvent = false">
+      <div class="modal">
+        <div class="modal-header"><h3>Add Calendar Event</h3><button class="close-btn" @click="showAddEvent = false">✕</button></div>
+        <div class="modal-body">
+          <div class="form-group"><label class="form-label">Title</label><input v-model="newEvent.title" class="form-control" placeholder="e.g. Midterm Exam" /></div>
+          <div class="form-group"><label class="form-label">Description</label><input v-model="newEvent.description" class="form-control" /></div>
+          <div class="form-group"><label class="form-label">Date & Time</label><input v-model="newEvent.date" type="datetime-local" class="form-control" /></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" @click="showAddEvent = false">Cancel</button>
+          <button class="btn btn-primary" @click="createEvent">Add Event</button>
         </div>
       </div>
     </div>
@@ -193,134 +331,192 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useRole } from '../composables/useRole.js'
 import { courseService, assignmentService, contentService, forumService, eventService } from '../services/api.js'
 
 const route = useRoute()
-const courseId = computed(() => route.params.id)
+const courseCode = computed(() => route.params.id)
+const { isStudent, isLecturer, isAdmin, canManageCourse } = useRole()
 
-const loading = ref(true)
-const course = ref({})
-const enrolled = ref(false)
-const enrolling = ref(false)
+const loading  = ref(true)
+const course   = ref({})
+const enrolled = ref(true)
+const enrolling= ref(false)
+const activeTab= ref('content')
 
-const user = computed(() => JSON.parse(localStorage.getItem('user') || 'null'))
-const isStudent = computed(() => user.value?.role === 'student')
-const isLecturer = computed(() => user.value?.role === 'lecturer')
-const isAdmin = computed(() => user.value?.role === 'admin')
-
-const COLORS = ['#3a6186','#89216b','#1c6c3a','#7b4397','#c0392b','#16a085']
-const heroColor = computed(() => COLORS[courseId.value % COLORS.length])
-
-const tabs = [
-  { key: 'content', label: 'Course Content', icon: '📖' },
-  { key: 'assignments', label: 'Assignments', icon: '📝' },
-  { key: 'forums', label: 'Forums', icon: '💬' },
-  { key: 'members', label: 'Members', icon: '👥' },
-  { key: 'calendar', label: 'Calendar', icon: '📅' },
+const allTabs = [
+  { key: 'content',     label: 'Content',     icon: '📖' },
+  { key: 'assignments', label: 'Assignments',  icon: '📝' },
+  { key: 'forums',      label: 'Forums',       icon: '💬' },
+  { key: 'members',     label: 'Members',      icon: '👥' },
+  { key: 'calendar',    label: 'Calendar',     icon: '📅' },
+  { key: 'admin',       label: 'Admin',        icon: '⚙️', adminOnly: true },
 ]
-const activeTab = ref('content')
+const visibleTabs = computed(() => allTabs.filter(t => !t.adminOnly || isAdmin.value))
+
+const COLORS = ['#3a6186','#89216b','#1c6c3a','#7b4397','#c0392b','#16a085','#2c3e50']
+const heroColor = computed(() => COLORS[String(courseCode.value).charCodeAt(0) % COLORS.length])
 
 // Content
-const contentItems = ref([])
+const contentItems   = ref([])
 const contentLoading = ref(false)
 const showAddContent = ref(false)
+const newContent     = ref({ title: '', type: 'link', url: '', section: '' })
 const groupedContent = computed(() => {
-  const sections = {}
+  const map = {}
   contentItems.value.forEach(item => {
     const s = item.section || 'General'
-    if (!sections[s]) sections[s] = { name: s, items: [] }
-    sections[s].items.push(item)
+    if (!map[s]) map[s] = { name: s, items: [] }
+    map[s].items.push(item)
   })
-  return Object.values(sections)
+  return Object.values(map)
 })
+const contentIcon = t => ({ link: '🔗', file: '📄', slide: '📊', video: '🎥' }[t] || '📄')
+const addContent = async () => {
+  try {
+    const res = await contentService.create({ ...newContent.value, courseCode: courseCode.value })
+    contentItems.value.push(res.data)
+    showAddContent.value = false
+    newContent.value = { title: '', type: 'link', url: '', section: '' }
+  } catch { alert('Failed to add content.') }
+}
 
 // Assignments
-const assignments = ref([])
-const assignLoading = ref(false)
+const assignments    = ref([])
+const assignLoading  = ref(false)
 const showAddAssignment = ref(false)
-const showSubmit = ref(false)
+const newAssign      = ref({ title: '', description: '', due_date: '', weight: 100 })
+const assignError    = ref('')
+const creatingAssign = ref(false)
+const showSubmit     = ref(false)
+const showGrade      = ref(false)
 const selectedAssignment = ref(null)
-const submission = ref({ content: '' })
+const submission     = ref({ content: '' })
+const submitting     = ref(false)
+const submitError    = ref('')
+const gradeSubmissions = ref([])
+
+const submittedCount = computed(() => assignments.value.filter(a => a.my_submission).length)
+const avgGrade = computed(() => {
+  const g = assignments.value.filter(a => a.my_grade !== undefined)
+  return g.length ? Math.round(g.reduce((s, a) => s + a.my_grade, 0) / g.length) : 0
+})
+const statusBadge = a => {
+  if (a.my_grade !== undefined) return { cls: 'badge-green', label: `Graded: ${a.my_grade}%` }
+  if (a.my_submission)          return { cls: 'badge-blue',  label: 'Submitted' }
+  if ((a.due_date||a.dueDate) && new Date(a.due_date||a.dueDate) < new Date()) return { cls: 'badge-red', label: 'Overdue' }
+  return { cls: 'badge-grey', label: 'Open' }
+}
+const openSubmit = a => { selectedAssignment.value = a; submission.value = { content: '' }; submitError.value = ''; showSubmit.value = true }
+const openGrade  = async a => {
+  selectedAssignment.value = a; gradeSubmissions.value = []; showGrade.value = true
+  try { const r = await assignmentService.getSubmissions(a.id || a.assignmentID); gradeSubmissions.value = (r.data.submissions||r.data).map(s=>({...s,inputGrade:s.grade||''})) } catch {}
+}
+const submitAssignment = async () => {
+  submitError.value = ''; submitting.value = true
+  try {
+    await assignmentService.submit(selectedAssignment.value.id || selectedAssignment.value.assignmentID, submission.value)
+    const idx = assignments.value.findIndex(a => (a.id||a.assignmentID) === (selectedAssignment.value.id||selectedAssignment.value.assignmentID))
+    if (idx !== -1) assignments.value[idx].my_submission = { submitted_at: new Date().toISOString() }
+    showSubmit.value = false
+  } catch (e) { submitError.value = e.response?.data?.error || 'Submission failed.' }
+  finally { submitting.value = false }
+}
+const createAssignment = async () => {
+  assignError.value = ''; creatingAssign.value = true
+  try {
+    const res = await assignmentService.create({ ...newAssign.value, courseCode: courseCode.value })
+    assignments.value.unshift(res.data); showAddAssignment.value = false
+    newAssign.value = { title: '', description: '', due_date: '', weight: 100 }
+  } catch (e) { assignError.value = e.response?.data?.error || 'Failed to create.' }
+  finally { creatingAssign.value = false }
+}
+const submitGrade = async s => {
+  try {
+    await assignmentService.grade(selectedAssignment.value.id||selectedAssignment.value.assignmentID, s.student_id, { grade: Number(s.inputGrade) })
+    s.grade = s.inputGrade; alert(`Grade saved for ${s.username||s.student_id}`)
+  } catch { alert('Failed to save grade.') }
+}
 
 // Forums
-const forums = ref([])
-const forumLoading = ref(false)
-const showAddForum = ref(false)
-const newForum = ref({ title: '' })
+const forums      = ref([])
+const forumLoading= ref(false)
+const showAddForum= ref(false)
+const newForum    = ref({ title: '', description: '' })
+const createForum = async () => {
+  try {
+    const res = await forumService.create({ ...newForum.value, courseCode: courseCode.value })
+    forums.value.push(res.data); showAddForum.value = false; newForum.value = { title: '', description: '' }
+  } catch { alert('Failed to create forum.') }
+}
 
 // Members
-const members = ref([])
-const membersLoading = ref(false)
+const members       = ref([])
+const membersLoading= ref(false)
+const AVATAR_COLORS = ['#3a6186','#89216b','#1c6c3a','#7b4397','#c0392b','#16a085']
+const memberName    = m => Array.isArray(m) ? `${m[0]||''} ${m[1]||''}`.trim() : `${m.firstName||''} ${m.lastName||''}`.trim() || m.username || String(m.userID||'')
+const memberInitials= m => { const n = memberName(m); const p = n.split(' '); return ((p[0]||'')[0]||(p[1]||'')[0]||'?').toUpperCase() + ((p[1]||'')[0]||'').toUpperCase() }
+const avatarColor   = m => AVATAR_COLORS[(memberName(m).charCodeAt(0)||0) % AVATAR_COLORS.length]
 
-// Events
-const events = ref([])
-const eventsLoading = ref(false)
+// Calendar
+const events       = ref([])
+const eventsLoading= ref(false)
 const showAddEvent = ref(false)
-
-const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-JM', { year: 'numeric', month: 'short', day: 'numeric' }) : '—'
-const contentIcon = (type) => ({ link: '🔗', file: '📄', slide: '📊', video: '🎥' }[type] || '📄')
-const eventMonth = (d) => d ? new Date(d).toLocaleString('default', { month: 'short' }).toUpperCase() : ''
-const eventDay = (d) => d ? new Date(d).getDate() : ''
-const dueBadge = (due) => {
-  if (!due) return { class: 'badge-grey', label: 'No due date' }
-  const diff = new Date(due) - new Date()
-  if (diff < 0) return { class: 'badge-red', label: 'Overdue' }
-  if (diff < 86400000 * 3) return { class: 'badge-gold', label: 'Due soon' }
-  return { class: 'badge-green', label: 'Upcoming' }
-}
-
-const openSubmit = (a) => { selectedAssignment.value = a; showSubmit.value = true }
-const submitAssignment = async () => {
+const newEvent     = ref({ title: '', description: '', date: '' })
+const eventMonth   = d => d ? new Date(d).toLocaleString('default',{month:'short'}).toUpperCase() : ''
+const eventDay     = d => d ? new Date(d).getDate() : ''
+const createEvent  = async () => {
   try {
-    await assignmentService.submit(selectedAssignment.value.id, submission.value)
-    showSubmit.value = false
-    submission.value = { content: '' }
-    alert('Assignment submitted!')
-  } catch (e) { alert('Submission failed.') }
+    const res = await eventService.create({ ...newEvent.value, courseCode: courseCode.value })
+    events.value.push(res.data); showAddEvent.value = false; newEvent.value = { title: '', description: '', date: '' }
+  } catch { alert('Failed to create event.') }
 }
 
+// Admin
+const assignForm = ref({ lecturerId: '' })
+const doAssignLecturer = async () => {
+  try {
+    await courseService.assignLecturer(Number(assignForm.value.lecturerId), courseCode.value)
+    alert('Lecturer assigned!'); assignForm.value.lecturerId = ''
+  } catch (e) { alert(e.response?.data?.error || 'Failed.') }
+}
+
+// Enrol (students)
 const enrollCourse = async () => {
   enrolling.value = true
-  try {
-    await courseService.register(courseId.value)
-    enrolled.value = true
-  } catch (e) { alert('Enrollment failed.') }
+  try { await courseService.enroll(courseCode.value); enrolled.value = true }
+  catch (e) { alert(e.response?.data?.error || 'Enrollment failed.') }
   finally { enrolling.value = false }
 }
 
-const createForum = async () => {
-  try {
-    const res = await forumService.create({ ...newForum.value, course_id: courseId.value })
-    forums.value.push(res.data)
-    showAddForum.value = false
-    newForum.value = { title: '' }
-  } catch (e) { alert('Failed to create forum.') }
-}
+const formatDate = d => d ? new Date(d).toLocaleDateString('en-JM',{year:'numeric',month:'short',day:'numeric'}) : '—'
 
-const loadTab = async (tab) => {
-  if (tab === 'content' && !contentItems.value.length) {
+// Lazy load tab data
+const loadTab = async tab => {
+  const code = courseCode.value
+  if (tab==='content' && !contentItems.value.length) {
     contentLoading.value = true
-    try { const r = await contentService.getByCourse(courseId.value); contentItems.value = r.data } catch {}
+    try { const r = await contentService.getByCourse(code); contentItems.value = r.data.content||r.data } catch {}
     contentLoading.value = false
   }
-  if (tab === 'assignments' && !assignments.value.length) {
+  if (tab==='assignments' && !assignments.value.length) {
     assignLoading.value = true
-    try { const r = await assignmentService.getByCourse(courseId.value); assignments.value = r.data } catch {}
+    try { const r = await assignmentService.getByCourse(code); assignments.value = r.data.assignments||r.data } catch {}
     assignLoading.value = false
   }
-  if (tab === 'forums' && !forums.value.length) {
+  if (tab==='forums' && !forums.value.length) {
     forumLoading.value = true
-    try { const r = await forumService.getByCourse(courseId.value); forums.value = r.data } catch {}
+    try { const r = await forumService.getByCourse(code); forums.value = r.data.forums||r.data } catch {}
     forumLoading.value = false
   }
-  if (tab === 'members' && !members.value.length) {
+  if (tab==='members' && !members.value.length) {
     membersLoading.value = true
-    try { const r = await courseService.getMembers(courseId.value); members.value = r.data } catch {}
+    try { const r = await courseService.getMembers(code); members.value = r.data.members||r.data } catch {}
     membersLoading.value = false
   }
-  if (tab === 'calendar' && !events.value.length) {
+  if (tab==='calendar' && !events.value.length) {
     eventsLoading.value = true
-    try { const r = await eventService.getByCourse(courseId.value); events.value = r.data } catch {}
+    try { const r = await eventService.getByCourse(code); events.value = r.data.events||r.data } catch {}
     eventsLoading.value = false
   }
 }
@@ -329,97 +525,109 @@ watch(activeTab, loadTab)
 
 onMounted(async () => {
   try {
-    const r = await courseService.getById(courseId.value)
-    course.value = r.data
-    enrolled.value = r.data.enrolled ?? true
+    const r = await courseService.getMyCourses()
+    const list = r.data.courses || r.data
+    course.value = list.find(c => (c.courseCode||c.code) === courseCode.value) || { courseCode: courseCode.value }
   } catch {
-    course.value = { code: 'COMP3161', name: 'Introduction to Database Management Systems', semester: 'S2_2025/26' }
-  } finally {
-    loading.value = false
-  }
+    course.value = { courseCode: courseCode.value, courseName: courseCode.value }
+  } finally { loading.value = false }
   loadTab('content')
 })
 </script>
 
 <style scoped>
-.course-hero {
-  position: relative; padding: calc(var(--nav-height) + 24px) 0 32px; overflow: hidden;
-}
-.hex-overlay {
-  position: absolute; inset: 0; opacity: .12;
-  background-image: url("data:image/svg+xml,%3Csvg width='56' height='100' viewBox='0 0 56 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34z' fill='none' stroke='%23fff' stroke-width='1.5'/%3E%3C/svg%3E");
-  background-size: 56px 100px;
-}
+.course-hero { position: relative; padding: calc(var(--nav-height) + 24px) 0 32px; overflow: hidden; }
+.hex-overlay { position: absolute; inset: 0; opacity: .12; background-image: url("data:image/svg+xml,%3Csvg width='56' height='100' viewBox='0 0 56 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34z' fill='none' stroke='%23fff' stroke-width='1.5'/%3E%3C/svg%3E"); background-size: 56px 100px; }
 .hero-inner { position: relative; }
 .back-btn { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); color: white; border-radius: 8px; padding: 6px 14px; font-size: 13px; cursor: pointer; margin-bottom: 16px; font-family: 'DM Sans', sans-serif; transition: background .15s; }
 .back-btn:hover { background: rgba(255,255,255,.25); }
-.course-code-badge { display: inline-block; background: rgba(255,255,255,.2); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; letter-spacing: .5px; margin-bottom: 10px; }
-.hero-content h1 { font-size: 28px; color: white; margin-bottom: 6px; text-shadow: 0 2px 8px rgba(0,0,0,.2); }
-.hero-meta { color: rgba(255,255,255,.75); font-size: 14px; margin-bottom: 16px; }
-.hero-actions { display: flex; gap: 10px; align-items: center; }
+.course-code-badge { display: inline-block; background: rgba(255,255,255,.2); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 10px; }
+.hero-content h1 { font-size: 26px; color: white; margin-bottom: 8px; text-shadow: 0 2px 8px rgba(0,0,0,.2); }
+.hero-meta-row { margin-bottom: 14px; }
+.role-chip { font-size: 12px; font-weight: 600; padding: 4px 14px; border-radius: 20px; }
+.role-chip.admin    { background: var(--uwi-gold); color: #1a1a1a; }
+.role-chip.lecturer { background: rgba(255,255,255,.2); color: white; border: 1px solid rgba(255,255,255,.4); }
+.role-chip.student  { background: rgba(255,255,255,.12); color: rgba(255,255,255,.9); border: 1px solid rgba(255,255,255,.3); }
+.hero-actions { margin-top: 4px; }
 
 .tab-bar { background: white; border-bottom: 1px solid var(--border); position: sticky; top: var(--nav-height); z-index: 40; }
-.tabs { display: flex; gap: 0; overflow-x: auto; }
-.tab {
-  padding: 14px 18px; background: none; border: none; cursor: pointer;
-  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
-  color: var(--text-muted); border-bottom: 3px solid transparent;
-  transition: all .15s; white-space: nowrap; display: flex; align-items: center; gap: 6px;
-}
+.tabs { display: flex; overflow-x: auto; }
+.tab { padding: 14px 16px; background: none; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--text-muted); border-bottom: 3px solid transparent; transition: all .15s; white-space: nowrap; gap: 6px; }
 .tab:hover { color: var(--text); background: var(--surface-2); }
 .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
 
 .tab-body { padding: 28px 0 60px; }
-
 .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
 .section-header h2 { font-size: 20px; }
 
-.empty-tab { text-align: center; color: var(--text-muted); padding: 48px 0; font-size: 15px; }
+.empty-tab { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
 
 /* Content */
-.content-section { margin-bottom: 28px; }
-.section-title { font-weight: 600; font-size: 14px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-.content-item { display: flex; align-items: center; gap: 14px; padding: 12px 16px; background: white; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 8px; }
-.content-icon { font-size: 20px; }
+.content-section { margin-bottom: 24px; }
+.section-label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+.content-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: white; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 8px; }
+.content-icon { font-size: 20px; flex-shrink: 0; }
 .content-info { flex: 1; }
 .content-name { font-weight: 500; font-size: 14px; }
 
 /* Assignments */
+.grade-bar { display: flex; align-items: center; gap: 28px; padding: 20px 24px; background: linear-gradient(135deg, var(--uwi-green), #004d2e); border-radius: var(--radius-lg); margin-bottom: 20px; color: white; flex-wrap: wrap; }
+.grade-stat { text-align: center; }
+.grade-val { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 700; line-height: 1; }
+.grade-label { font-size: 11px; opacity: .75; text-transform: uppercase; letter-spacing: .5px; margin-top: 3px; }
+.grade-progress-wrap { flex: 1; min-width: 200px; }
+.progress-bar { height: 8px; background: rgba(255,255,255,.2); border-radius: 4px; overflow: hidden; margin-bottom: 4px; }
+.progress-fill { height: 100%; background: var(--uwi-gold); border-radius: 4px; transition: width .5s; }
 .assign-list { display: flex; flex-direction: column; gap: 14px; }
+.assign-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
 .assign-title { font-size: 16px; }
-.assign-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
+.assign-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.meta-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; background: var(--surface-2); border-radius: 20px; font-size: 12px; color: var(--text-muted); }
+.grade-chip { background: #d4edda; color: #155724; }
+.assign-actions { display: flex; align-items: center; gap: 10px; padding-top: 12px; border-top: 1px solid var(--border); }
+
+/* Grade modal */
+.grade-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.grade-row:last-child { border-bottom: none; }
+.student-info { display: flex; align-items: center; gap: 8px; min-width: 140px; }
+.student-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--uwi-green); color: white; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.sub-content { flex: 1; }
+.grade-input-wrap { display: flex; gap: 8px; align-items: center; }
+.grade-input { width: 80px; }
 
 /* Forums */
 .forum-list { display: flex; flex-direction: column; gap: 10px; }
 .forum-item { cursor: pointer; transition: box-shadow .15s; }
 .forum-item:hover { box-shadow: var(--shadow); }
-.forum-icon { font-size: 24px; }
-.forum-name { font-weight: 500; }
+.forum-icon { font-size: 22px; }
+.forum-name { font-weight: 500; font-size: 14px; }
 .row-arrow { color: var(--text-muted); font-size: 22px; }
 
 /* Members */
-.members-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
-.member-card { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
-.member-avatar {
-  width: 48px; height: 48px; border-radius: 50%; background: var(--uwi-green);
-  color: white; display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 16px;
-}
+.members-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+.member-card { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.member-avatar { width: 44px; height: 44px; border-radius: 50%; color: white; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; }
 .member-name { font-size: 13px; font-weight: 500; }
 
 /* Events */
 .events-list { display: flex; flex-direction: column; gap: 10px; }
-.event-item { margin-bottom: 0; }
-.event-date-box { min-width: 52px; text-align: center; background: var(--primary-light); border-radius: 8px; padding: 6px; }
+.event-date-box { min-width: 48px; text-align: center; background: var(--primary-light); border-radius: 8px; padding: 6px; flex-shrink: 0; }
 .event-month { font-size: 10px; font-weight: 700; color: var(--primary); text-transform: uppercase; }
-.event-day { font-size: 22px; font-weight: 700; color: var(--primary); line-height: 1; }
+.event-day { font-size: 20px; font-weight: 700; color: var(--primary); line-height: 1; }
 
-/* Modal */
+/* Admin */
+.admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.admin-card-title { font-size: 16px; }
+
+/* Modals */
 .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 300; display: flex; align-items: center; justify-content: center; padding: 20px; }
-.modal { background: white; border-radius: var(--radius-lg); width: 100%; max-width: 480px; box-shadow: var(--shadow-lg); }
-.modal-header { padding: 20px 24px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+.modal { background: white; border-radius: var(--radius-lg); width: 100%; max-width: 480px; box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto; }
+.modal-lg { max-width: 640px; }
+.modal-header { padding: 18px 24px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
 .modal-header h3 { font-size: 17px; }
 .close-btn { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--text-muted); }
 .modal-body { padding: 20px 24px; }
-.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+.modal-footer { padding: 14px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+.mt-1 { margin-top: 4px; }
 </style>

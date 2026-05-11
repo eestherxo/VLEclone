@@ -30,7 +30,8 @@ def get_student_courses(student_id):
     cursor = connection.cursor(dictionary=True)
 
     query = """
-        SELECT c.courseCode FROM Course AS c
+        SELECT c.courseCode, c.courseName 
+        FROM Course AS c
         JOIN Enroll AS e ON c.courseCode = e.courseCode
         WHERE e.studentId = %s
     """
@@ -46,7 +47,7 @@ def get_lecturer_courses(lecturer_id):
     cursor = connection.cursor(dictionary=True)
 
     query = """
-        SELECT c.courseCode FROM Course AS c
+        SELECT c.courseCode, c.courseName FROM Course AS c
         JOIN Teaches AS t ON c.courseCode = t.courseCode
         WHERE t.lecturerId = %s
     """

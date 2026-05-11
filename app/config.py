@@ -5,6 +5,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
+    JWT_HEADER_NAME   = "Authorization"
+    JWT_HEADER_TYPE   = "Bearer"         
+    JWT_TOKEN_LOCATION = ["headers"]
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
     DB_HOST        = os.getenv("DB_HOST", "127.0.0.1")
     DB_PORT        = int(os.getenv("DB_PORT", 3306))

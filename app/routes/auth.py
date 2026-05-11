@@ -1,6 +1,7 @@
 from flask_jwt_extended import create_access_token
 from flask import Blueprint, request
-from app.services.user_service import verify_user, insert_user
+from app.services.user_service import verify_user, insert_user, get_user
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
@@ -24,11 +25,26 @@ def register():
     
     try:
         insert_user(user_id, first_name, last_name, password, role)
-        token = create_access_token(identity=user_id)
+        token = create_access_token(identity=str(user_id))
         return {"message": "User registered successfully", "access_token": token}, 201
     except Exception as e:
         return {"error": str(e)}, 400
-    
+
+
+@auth_bp.get("/me")
+@jwt_required()
+def me():
+    user_id = get_jwt_identity()
+    user = get_user(user_id)  # you already have this function
+
+    if not user:
+        return {"error": "User not found"}, 404
+
+    return {
+        "id":       user["userID"],
+        "username": f"{user['firstName']} {user['lastName']}",
+        "role":     user["role"]  
+    }, 200
 
 
 @auth_bp.post("/login")
@@ -45,7 +61,7 @@ def login():
         return {"error": "Invalid Credentials"}, 401
     
     # Create JWT token 
-    token = create_access_token(identity=user_id)
+    token = create_access_token(identity=str(user_id))
 
     return {"access_token": token, }, 200
 
