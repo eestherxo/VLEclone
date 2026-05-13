@@ -5,28 +5,31 @@ def verify_user(user_id, password):
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
 
-    query = "SELECT userID, firstName, lastName, role FROM User WHERE userID = %s"
-    cursor.execute(query, (user_id, password))
-    user = cursor.fetchone()
+    query = "SELECT password FROM User WHERE userID = %s"
+    cursor.execute(query, (user_id,))
+    pwd = cursor.fetchone()
 
     cursor.close()
     connection.close()
 
-    if not user:
+    if not pwd:
         return None
     
-    if checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
-        return user
-    
+    try:
+        if checkpw(password.encode('utf-8'), pwd["password"].encode('utf-8')):
+            return pwd
+    except ValueError:
+        pass
+
     # Plain text comparison for dummy data
-    if user['password'] == password:
-        return user
+    if pwd["password"] == password:
+        return pwd
 
     return None
 
 def insert_user(user_id, first_name, last_name, password, role):
     connection = get_connection()
-    cursor = connection.cursor()
+    cursor = connection.cursor(dictionary=True)
 
     hashed_password = hashpw(password.encode('utf-8'), gensalt())
 

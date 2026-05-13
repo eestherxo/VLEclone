@@ -24,8 +24,7 @@ def register():
     
     try:
         insert_user(user_id, first_name, last_name, password, role)
-        token = create_access_token(identity=user_id)
-        return {"message": "User registered successfully", "access_token": token}, 201
+        return {"message": "User registered successfully"}, 201
     except Exception as e:
         return {"error": str(e)}, 400
     
