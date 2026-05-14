@@ -14,9 +14,7 @@ def verify_user(user_id, password):
 
     if not user:
         return None
-    
-    if checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
-        return user
+
     
     # Plain text comparison for dummy data
     if user['password'] == password:

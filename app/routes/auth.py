@@ -55,14 +55,17 @@ def login():
     if not user_id or not password:
         return {"error": "Missing userID or password"}, 400
 
-    # Verifiy credentials
     user = verify_user(user_id, password)
     if not user:
         return {"error": "Invalid Credentials"}, 401
-    
-    # Create JWT token 
+
     token = create_access_token(identity=str(user_id))
-
-    return {"access_token": token, }, 200
-
-
+    return {
+        "access_token": token,
+        "user": {
+            "id":        user["userID"],
+            "firstName": user["firstName"],
+            "lastName":  user["lastName"],
+            "role":      user["role"],
+        }
+    }, 200
