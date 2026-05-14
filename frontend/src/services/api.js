@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL: '/api',
   headers: { 'Content-Type': 'application/json' }
 })
 
@@ -26,21 +26,21 @@ api.interceptors.response.use(
 export const authService = {
   login:    (data) => api.post('/auth/login', data),
   register: (data) => api.post('/auth/register', data),
-  me:       ()     => api.get('/auth/me'),
+  me:       ()     => api.get('/auth/login'),
 }
 
 // ── Courses ───────────────────────────────────────────────────
 export const courseService = {
-  getMyCourses:      ()                       => api.get('/courses/my'),
-  getAll:            ()                       => api.get('/courses/list'),
-  getStudentCourses: (id)                     => api.get(`/courses/list/student/${id}`),
-  getLecturerCourses:(id)                     => api.get(`/courses/list/lecturer/${id}`),
+getMyCourses: () => api.get(`/courses/student/${JSON.parse(localStorage.getItem('user')||'{}').id}`),
+  getAll:            ()                       => api.get('/courses/all'),                    // was /courses/list
+  getStudentCourses: (id)                     => api.get(`/courses/student/${id}`),          // was /student/${id}/courses
+  getLecturerCourses:(id)                     => api.get(`/courses/lecturer/${id}`),         // was /courses/list/lecturer/${id}
   create:            (data)                   => api.post('/courses/create', {
                                                    courseCode: data.code || data.courseCode,
                                                    courseName: data.name || data.courseName,
                                                  }),
   enroll:            (courseCode)             => api.post('/courses/enroll-student', {
-                                                   studentId: JSON.parse(localStorage.getItem('user')||'{}').id,
+                                                   studentID: JSON.parse(localStorage.getItem('user')||'{}').id,  // was studentId — backend expects studentID
                                                    courseCode,
                                                  }),
   assignLecturer:    (lecturerId, courseCode) => api.post('/courses/assign-lecturer', { lecturerId, courseCode }),

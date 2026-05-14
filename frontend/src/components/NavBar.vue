@@ -28,7 +28,7 @@
 
       <div class="user-menu" @click="toggleMenu" ref="menuRef">
         <div class="avatar">{{ initials }}</div>
-        <span class="username-label">{{ user?.username || 'User' }}</span>
+        <span class="username-label">{{ user?.firstName ? `${user.firstName} ${user.lastName}` : user?.username || 'User' }}</span>
         <div v-if="menuOpen" class="dropdown-menu">
           <router-link to="/dashboard" class="dropdown-item">Dashboard</router-link>
           <router-link v-if="user?.role === 'admin'" to="/admin" class="dropdown-item">Admin Panel</router-link>
@@ -50,8 +50,9 @@ const menuRef = ref(null)
 const notifCount = ref(3)
 const user = computed(() => JSON.parse(localStorage.getItem('user') || 'null'))
 const initials = computed(() => {
-  const u = user.value?.username || ''
-  return u.slice(0, 2).toUpperCase() || 'LS'
+  const u = user.value
+  if (u?.firstName) return (u.firstName[0] + (u.lastName?.[0] || '')).toUpperCase()
+  return (u?.username || 'LS').slice(0, 2).toUpperCase()
 })
 
 const toggleMenu = () => menuOpen.value = !menuOpen.value
