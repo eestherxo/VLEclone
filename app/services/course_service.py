@@ -34,7 +34,7 @@ def get_student_courses(student_id):
     query = """
         SELECT c.courseName
         FROM Course c
-        JOIN Enrollment e ON c.courseCode = e.courseCode
+        JOIN Enroll e ON c.courseCode = e.courseCode
         WHERE e.studentID = %s
     """
     cursor.execute(query, (student_id,))
@@ -54,7 +54,7 @@ def get_lecturer_courses(lecturer_id):
         SELECT c.courseName
         FROM Course c
         JOIN Teach t ON c.courseCode = t.courseCode
-        WHERE t.lecturerID = %s
+        WHERE t.lecID = %s
     """
     cursor.execute(query, (lecturer_id,))
     courses = cursor.fetchall()
@@ -63,3 +63,66 @@ def get_lecturer_courses(lecturer_id):
     connection.close()
 
     return [course["courseName"] for course in courses]
+
+
+def check_course_lecturer(course_code):
+    """Checks if course has a lecturer assigned"""
+    connection = get_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    query = "SELECT lecID FROM Teach WHERE courseCode = %s"
+    cursor.execute(query, (course_code,))
+    lecturer = cursor.fetchone()
+
+    cursor.close()
+    connection.close()
+
+    return lecturer
+
+def assign_lecturer(lecturer_id, course_code):
+    connection = get_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    query = "INSERT INTO Teach (lecID, courseCode) VALUES (%s, %s)"
+    cursor.execute(query, (lecturer_id, course_code))
+
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+
+def enroll_student(student_id, course_code):
+    connection = get_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    query = "INSERT INTO Enroll (studentID, courseCode) VALUES (%s, %s)"
+    cursor.execute(query, (student_id, course_code))
+
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+def get_course_members(course_code):
+    connection = get_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    query = """
+        SELECT u.firstName, u.lastName, u.role
+        FROM User u
+        JOIN Enroll e ON u.userID = e.studentID
+        WHERE e.courseCode = %s
+
+        UNION 
+
+        SELECT u.firstName, u.lastName, u.role
+        FROM User u
+        JOIN Teach t ON u.userID = t.lecID
+        WHERE t.courseCode = %s
+    """
+    cursor.execute(query, (course_code, course_code))
+    members = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+
+    return [(member["firstName"], member["lastName"], member["role"]) for member in members]
