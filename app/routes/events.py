@@ -52,3 +52,49 @@ def create_course_event():
         return {"error": str(e)}, 400
 
 
+@event_bp.post("/assignment/submit")
+@jwt_required()
+def submit_assignment_endpoint():
+    user_id = get_jwt_identity()
+    user = get_user(user_id)
+
+    if not user or user["role"].lower() != 'student':
+        return {"error": "Only students can submit assignments"}, 403
+
+    student_id = request.json.get("studentID", None)
+    assignment_id = request.json.get("assignmentID", None)
+    file_path = request.json.get("filePath", None)
+
+    if not student_id or not assignment_id or not file_path:
+        return {"error": "Missing required fields"}, 400
+
+    try:
+        submit_assignment(student_id, assignment_id, file_path)
+        return {"message": "Assignment submitted successfully"}, 201
+    except Exception as e:
+        return {"error": str(e)}, 400
+    
+
+@event_bp.post("/assignment/grade")
+@jwt_required()
+def grade_assignment_endpoint():
+    user_id = get_jwt_identity()
+    user = get_user(user_id)
+
+    if not user or user["role"].lower() != 'lecturer':
+        return {"error": "Only lecturers can grade assignments"}, 403
+
+    assignment_id = request.json.get("assignmentID", None)
+    student_id = request.json.get("studentID", None)
+    grade_value = request.json.get("grade", None)
+
+    if not assignment_id or not student_id or grade_value is None:
+        return {"error": "Missing required fields"}, 400
+
+    try:
+        grade_assignment(user_id, assignment_id, student_id, grade_value)
+        return {"message": "Assignment graded successfully"}, 201
+    except Exception as e:
+        return {"error": str(e)}, 400
+
+
