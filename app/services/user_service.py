@@ -14,17 +14,20 @@ def verify_user(user_id, password):
 
     if not user:
         return None
-
+    
+    # Verify password 
     try:
         if checkpw(password.encode('utf-8'), user["password"].encode('utf-8')):
             return user
     except ValueError:
         pass
 
+    # Plain text comparison for dummy data
     if user["password"] == password:
         return user
 
     return None
+
 
 def insert_user(user_id, first_name, last_name, password, role):
     connection = get_connection()

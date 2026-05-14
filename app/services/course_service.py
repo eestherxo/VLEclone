@@ -16,11 +16,14 @@ def insert_course(course_code, course_name):
 def get_courses():
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
-    cursor.execute("SELECT courseCode, courseName FROM Course")
+
+    query = "SELECT courseCode, courseName FROM Course"
+    cursor.execute(query)
     courses = cursor.fetchall()
     cursor.close()
     connection.close()
-    return courses  # returns list of dicts
+
+    return courses
 
 
 def get_student_courses(student_id):
@@ -36,7 +39,8 @@ def get_student_courses(student_id):
     courses = cursor.fetchall()
     cursor.close()
     connection.close()
-    return courses  # returns list of dicts
+
+    return courses
 
 
 def get_lecturer_courses(lecturer_id):
@@ -52,7 +56,9 @@ def get_lecturer_courses(lecturer_id):
     courses = cursor.fetchall()
     cursor.close()
     connection.close()
-    return courses  # returns list of dicts
+
+    return courses
+
 
 def check_course_lecturer(course_code):
     """Checks if course has a lecturer assigned"""
@@ -67,6 +73,7 @@ def check_course_lecturer(course_code):
     connection.close()
 
     return lecturer
+
 
 def assign_lecturer(lecturer_id, course_code):
     connection = get_connection()
@@ -91,6 +98,7 @@ def enroll_student(student_id, course_code):
     cursor.close()
     connection.close()
 
+
 def get_course_members(course_code):
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
@@ -114,4 +122,4 @@ def get_course_members(course_code):
     cursor.close()
     connection.close()
 
-    return [(member["firstName"], member["lastName"], member["role"]) for member in members]
+    return members
