@@ -13,7 +13,7 @@
     <div class="navbar-links">
       <router-link to="/home" class="nav-link">Home</router-link>
       <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
-      <router-link to="/dashboard" class="nav-link active">My courses</router-link>
+      <router-link to="/my-courses" class="nav-link active">My courses</router-link>
       <div class="nav-dropdown">
         <button class="nav-link dropdown-btn">Other ≡ ▾</button>
       </div>
