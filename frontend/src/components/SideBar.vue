@@ -17,15 +17,18 @@
       </div>
 
       <div class="nav-section" v-if="recentCourses.length">
-        <div class="section-label">Recent Courses</div>
-        <div
-          v-for="c in recentCourses" :key="c.id"
-          class="recent-course"
-          @click="$router.push(`/course/${c.id}`)"
-        >
-          <div class="course-dot" :style="{ background: c.color }"></div>
-          <span>{{ c.code }}</span>
-        </div>
+       <!-- recent courses -->
+<div
+  v-for="c in recentCourses" :key="c.code"
+  class="recent-course"
+  @click="$router.push(`/course/${c.code}`)"
+>
+  <div class="course-dot" :style="{ background: c.color }"></div>
+  <span>{{ c.code }}</span>
+</div>
+
+<!-- sidebar footer -->
+<div class="user-name">{{ user?.firstName ? `${user.firstName} ${user.lastName}` : user?.username }}</div>
       </div>
     </nav>
 
@@ -42,18 +45,31 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const user = computed(() => JSON.parse(localStorage.getItem('user') || 'null'))
-const initials = computed(() => (user.value?.username || '').slice(0, 2).toUpperCase())
+const initials = computed(() => {
+  const u = user.value
+  if (u?.firstName) return (u.firstName[0] + (u.lastName?.[0] || '')).toUpperCase()
+  return (u?.username || 'LS').slice(0, 2).toUpperCase()
+})
 const isAdmin = computed(() => user.value?.role === 'admin')
 
 const courseColors = ['#3498db','#2ecc71','#e74c3c','#9b59b6','#f39c12','#1abc9c']
-const recentCourses = ref([
-  { id: 1, code: 'COMP3161', color: courseColors[0] },
-  { id: 2, code: 'COMP2211', color: courseColors[1] },
-  { id: 3, code: 'INFO3180', color: courseColors[2] },
-])
+
+const recentCourses = ref([])
+
+const loadRecent = () => {
+  const stored = JSON.parse(localStorage.getItem('recentCourses') || '[]')
+  recentCourses.value = stored.map((code, i) => ({
+    code,
+    color: courseColors[i % courseColors.length]
+  }))
+}
+
+onMounted(loadRecent)
 </script>
 
 <style scoped>

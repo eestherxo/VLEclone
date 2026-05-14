@@ -11,7 +11,7 @@
     </div>
 
     <div class="navbar-links">
-      <router-link to="/dashboard" class="nav-link">Home</router-link>
+      <router-link to="/home" class="nav-link">Home</router-link>
       <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
       <router-link to="/dashboard" class="nav-link active">My courses</router-link>
       <div class="nav-dropdown">
