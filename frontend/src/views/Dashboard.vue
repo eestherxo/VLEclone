@@ -1,4 +1,5 @@
 <template>
+  <div>
   <div class="dashboard">
     <div class="container py-6">
       <div class="dash-header">
@@ -117,6 +118,7 @@
       </div>
     </div>
   </div>
+</div>
 </div>
 </template>
 

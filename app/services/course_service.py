@@ -16,54 +16,43 @@ def insert_course(course_code, course_name):
 def get_courses():
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
-
-    query = "SELECT courseName FROM Course"
-    cursor.execute(query)
+    cursor.execute("SELECT courseCode, courseName FROM Course")
     courses = cursor.fetchall()
-
     cursor.close()
     connection.close()
-
-    return [course["courseName"] for course in courses]
+    return courses  # returns list of dicts
 
 
 def get_student_courses(student_id):
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
-
     query = """
-        SELECT c.courseName
+        SELECT c.courseCode, c.courseName
         FROM Course c
         JOIN Enroll e ON c.courseCode = e.courseCode
         WHERE e.studentID = %s
     """
     cursor.execute(query, (student_id,))
     courses = cursor.fetchall()
-
     cursor.close()
     connection.close()
-
-    return [course["courseName"] for course in courses]
+    return courses  # returns list of dicts
 
 
 def get_lecturer_courses(lecturer_id):
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
-
     query = """
-        SELECT c.courseName
+        SELECT c.courseCode, c.courseName
         FROM Course c
         JOIN Teach t ON c.courseCode = t.courseCode
         WHERE t.lecID = %s
     """
     cursor.execute(query, (lecturer_id,))
     courses = cursor.fetchall()
-
     cursor.close()
     connection.close()
-
-    return [course["courseName"] for course in courses]
-
+    return courses  # returns list of dicts
 
 def check_course_lecturer(course_code):
     """Checks if course has a lecturer assigned"""
