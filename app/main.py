@@ -2,7 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from .db import config
-from .routes import auth_bp, course_bp
+from .routes import auth_bp, course_bp, event_bp
 
 
 
@@ -18,3 +18,4 @@ jwt = JWTManager(app)
 # Endpoints
 app.register_blueprint(auth_bp)
 app.register_blueprint(course_bp)
+app.register_blueprint(event_bp)
