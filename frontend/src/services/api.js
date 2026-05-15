@@ -31,7 +31,13 @@ export const authService = {
 
 // ── Courses ───────────────────────────────────────────────────
 export const courseService = {
-getMyCourses: () => api.get(`/courses/student/${JSON.parse(localStorage.getItem('user')||'{}').id}`),
+getMyCourses: () => {
+  const user = JSON.parse(localStorage.getItem('user') || '{}')
+  const role = user.role?.toLowerCase()
+  if (role === 'lecturer') return api.get(`/courses/lecturer/${user.id}`)
+  if (role === 'admin')    return api.get('/courses/all')
+  return api.get(`/courses/student/${user.id}`)
+},
   getAll:            ()                       => api.get('/courses/all'),                    // was /courses/list
   getStudentCourses: (id)                     => api.get(`/courses/student/${id}`),          // was /student/${id}/courses
   getLecturerCourses:(id)                     => api.get(`/courses/lecturer/${id}`),         // was /courses/list/lecturer/${id}
@@ -98,12 +104,13 @@ export const forumService = {
 //          POST /events/create
 export const eventService = {
   getByCourse:     (courseCode)          => api.get(`/events/course/${courseCode}`),
-  getByStudentDate:(studentId, date)     => api.get(`/events/student/${studentId}?date=${date}`),
-  create:          (data)                => api.post('/events/create', {
-                                              courseCode: data.courseCode,
-                                              eventName:  data.title || data.eventName,
-                                              eventDate:  data.date  || data.eventDate,
-                                            }),
+ getByStudentDate: (studentId, date) => api.get(`/events/student/${studentId}/date/${date}`),
+create: (data) => api.post('/events/course', {
+  courseCode:  data.courseCode,
+  eventName:   data.eventName,
+  createdDate: data.createdDate,
+  dueDate:     data.dueDate,
+}),
 }
 
 // ── Reports (admin only) ──────────────────────────────────────

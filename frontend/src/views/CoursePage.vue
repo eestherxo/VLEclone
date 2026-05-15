@@ -155,19 +155,32 @@
           </div>
         </div>
 
-        <!-- MEMBERS TAB -->
-        <div v-if="activeTab === 'members'">
-          <div class="section-header"><h2>Course Members</h2></div>
-          <div v-if="membersLoading" class="spinner"></div>
-          <div v-else-if="!members.length" class="empty-tab">No members found.</div>
-          <div v-else class="members-grid">
-            <div v-for="(m, i) in members" :key="i" class="member-card card card-body">
-              <div class="member-avatar" :style="{ background: avatarColor(m) }">{{ memberInitials(m) }}</div>
-              <div class="member-name">{{ memberName(m) }}</div>
-              <span class="badge badge-blue">Member</span>
-            </div>
-          </div>
-        </div>
+       <!-- MEMBERS TAB -->
+<div v-if="activeTab === 'members'">
+  <div class="section-header"><h2>Course Members</h2></div>
+
+  <!-- Filter + Search -->
+  <div class="members-filters">
+    <div class="filter-tabs">
+      <button :class="['filter-tab', memberFilter==='all'&&'active']"    @click="memberFilter='all'">All</button>
+      <button :class="['filter-tab', memberFilter==='student'&&'active']" @click="memberFilter='student'">Students</button>
+      <button :class="['filter-tab', memberFilter==='lecturer'&&'active']" @click="memberFilter='lecturer'">Lecturers</button>
+    </div>
+    <input v-model="memberSearch" class="form-control member-search" placeholder="🔍 Search members…" />
+  </div>
+
+  <div v-if="membersLoading" class="spinner"></div>
+  <div v-else-if="!filteredMembers.length" class="empty-tab">No members found.</div>
+  <div v-else class="members-grid">
+    <div v-for="(m, i) in filteredMembers" :key="i" class="member-card card card-body">
+      <div class="member-avatar" :style="{ background: avatarColor(m) }">{{ memberInitials(m) }}</div>
+      <div class="member-name">{{ memberName(m) }}</div>
+      <span :class="['badge', memberRole(m) === 'lecturer' ? 'badge-blue' : 'badge-green']">
+        {{ memberRole(m) === 'lecturer' ? 'Lecturer' : 'Student' }}
+      </span>
+    </div>
+  </div>
+</div>
 
         <!-- CALENDAR TAB -->
         <div v-if="activeTab === 'calendar'">
@@ -453,11 +466,27 @@ const createForum = async () => {
 // Members
 const members       = ref([])
 const membersLoading= ref(false)
+const memberFilter = ref('all')
+const memberSearch = ref('')
 const AVATAR_COLORS = ['#3a6186','#89216b','#1c6c3a','#7b4397','#c0392b','#16a085']
 const memberName    = m => Array.isArray(m) ? `${m[0]||''} ${m[1]||''}`.trim() : `${m.firstName||''} ${m.lastName||''}`.trim() || m.username || String(m.userID||'')
 const memberInitials= m => { const n = memberName(m); const p = n.split(' '); return ((p[0]||'')[0]||(p[1]||'')[0]||'?').toUpperCase() + ((p[1]||'')[0]||'').toUpperCase() }
 const avatarColor   = m => AVATAR_COLORS[(memberName(m).charCodeAt(0)||0) % AVATAR_COLORS.length]
+const filteredMembers = computed(() => {
+  let list = members.value
+  if (memberFilter.value !== 'all')
+    list = list.filter(m => memberRole(m) === memberFilter.value)
+  if (memberSearch.value) {
+    const q = memberSearch.value.toLowerCase()
+    list = list.filter(m => memberName(m).toLowerCase().includes(q))
+  }
+  return list
+})
 
+const memberRole = m => {
+  if (Array.isArray(m)) return (m[2] || '').toLowerCase()
+  return (m.role || '').toLowerCase()
+}
 // Calendar
 const events       = ref([])
 const eventsLoading= ref(false)
@@ -465,12 +494,22 @@ const showAddEvent = ref(false)
 const newEvent     = ref({ title: '', description: '', date: '' })
 const eventMonth   = d => d ? new Date(d).toLocaleString('default',{month:'short'}).toUpperCase() : ''
 const eventDay     = d => d ? new Date(d).getDate() : ''
-const createEvent  = async () => {
+const createEvent = async () => {
   try {
-    const res = await eventService.create({ ...newEvent.value, courseCode: courseCode.value })
-    events.value.push(res.data); showAddEvent.value = false; newEvent.value = { title: '', description: '', date: '' }
-  } catch { alert('Failed to create event.') }
+    await eventService.create({
+      courseCode:  courseCode.value,
+      eventName:   newEvent.value.title,
+      createdDate: new Date().toISOString().split('T')[0],
+      dueDate:     newEvent.value.date,
+    })
+    await loadTab('calendar')  // refresh the list
+    showAddEvent.value = false
+    newEvent.value = { title: '', description: '', date: '' }
+  } catch (e) {
+    alert(e.response?.data?.error || 'Failed to create event.')
+  }
 }
+
 
 // Admin
 const assignForm = ref({ lecturerId: '' })
@@ -609,6 +648,19 @@ onMounted(async () => {
 .member-card { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
 .member-avatar { width: 44px; height: 44px; border-radius: 50%; color: white; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; }
 .member-name { font-size: 13px; font-weight: 500; }
+.members-filters {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 20px; flex-wrap: wrap;
+}
+.filter-tabs { display: flex; gap: 6px; }
+.filter-tab {
+  padding: 6px 16px; border-radius: 20px; border: 1.5px solid var(--border);
+  background: white; cursor: pointer; font-size: 13px; font-weight: 500;
+  color: var(--text-muted); transition: all .15s; font-family: 'DM Sans', sans-serif;
+}
+.filter-tab:hover { border-color: var(--primary); color: var(--primary); }
+.filter-tab.active { background: var(--primary); border-color: var(--primary); color: white; }
+.member-search { max-width: 260px; }
 
 /* Events */
 .events-list { display: flex; flex-direction: column; gap: 10px; }

@@ -45,5 +45,10 @@ def login():
     token = create_access_token(identity=str(user_id))
     return {
         "access_token": token,
-        "user": user
+        "user": {
+            "id":        user["userID"],
+            "firstName": user["firstName"],
+            "lastName":  user["lastName"],
+            "role":      user["role"],
+        }
     }, 200

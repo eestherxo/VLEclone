@@ -4,7 +4,7 @@ def get_course_events(course_code):
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
 
-    query = "SELECT eventName, createdDate, dueDate FROM CalendarEvent WHERE courseCode = %s"
+    query = "SELECT eventName, createdDate, dueDate, courseCode FROM CalendarEvent WHERE courseCode = %s"
     cursor.execute(query, (course_code,))
     events = cursor.fetchall()
 

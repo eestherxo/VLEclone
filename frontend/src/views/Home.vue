@@ -57,8 +57,8 @@
           <div v-else class="events-feed">
             <div v-for="e in upcomingEvents" :key="e.eventID || e.id" class="event-card">
               <div class="event-date-col">
-                <div class="event-month-label">{{ eventMonth(e.eventDate || e.date) }}</div>
-                <div class="event-day-label">{{ eventDay(e.eventDate || e.date) }}</div>
+               <div class="event-month-label">{{ eventMonth(e.dueDate || e.eventDate || e.date) }}</div>
+              <div class="event-day-label">{{ eventDay(e.dueDate || e.eventDate || e.date) }}</div>
               </div>
               <div class="event-details">
                 <div class="event-title">{{ e.eventName || e.title }}</div>
@@ -97,11 +97,10 @@ const eventDay   = d => d ? new Date(d).getDate() : ''
 
 const upcomingEvents = computed(() =>
   allEvents.value
-    .filter(e => new Date(e.eventDate || e.date) >= now)
-    .sort((a, b) => new Date(a.eventDate || a.date) - new Date(b.eventDate || b.date))
+    .filter(e => new Date(e.dueDate || e.eventDate || e.date) >= now)
+    .sort((a, b) => new Date(a.dueDate || a.eventDate || a.date) - new Date(b.dueDate || b.eventDate || b.date))
     .slice(0, 8)
 )
-
 onMounted(async () => {
   // load enrolled courses
   try {
