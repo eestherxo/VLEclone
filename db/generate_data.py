@@ -65,7 +65,7 @@ def batch_inserts(file, table_name, columns, values_list):
         file.write("\n")
 
 
-with open('data.sql', 'w') as file:    
+with open('db/data.sql', 'w') as file:    
     users = []
     
     # Generate Student Users
@@ -75,7 +75,7 @@ with open('data.sql', 'w') as file:
         fname = fake.first_name().replace("'", "''")  
         lname = fake.last_name().replace("'", "''")  
         pwd = fake.password(length=8, special_chars=True, digits=True, upper_case=True, lower_case=True).replace("'", "''")
-        users.append((sid, fname, lname, pwd, 'Student'))
+        users.append((sid, pwd, fname, lname, 'Student'))
 
     # Generate Lecturer Users
     for lecturer in range(1, LECTURERS + 1):
@@ -84,7 +84,7 @@ with open('data.sql', 'w') as file:
         fname = fake.first_name().replace("'", "''")  
         lname = fake.last_name().replace("'", "''") 
         pwd = fake.password(length=8, special_chars=True, digits=True, upper_case=True, lower_case=True).replace("'", "''")
-        users.append((lid, fname, lname, pwd, 'Lecturer'))
+        users.append((lid, pwd, fname, lname, 'Lecturer'))
 
     # Generate Admin Users
     for admin in range(1, ADMINS + 1):
@@ -96,11 +96,10 @@ with open('data.sql', 'w') as file:
         users.append((aid, pwd, fname, lname, 'Admin'))
 
     # Batch insert users
-    fake.random.shuffle(users)
     file.write("-- Insert Users\n")
-    user_values = [f"({uid}, '{fname}', '{lname}', '{pwd}', '{role}')" 
-                   for uid, fname, lname, pwd, role in users]
-    batch_inserts(file, "User", "userID, firstName, lastName, password, role", user_values)
+    user_values = [f"({uid}, '{pwd}', '{fname}', '{lname}', '{role}')" 
+                   for uid, pwd, fname, lname, role in users]
+    batch_inserts(file, "User", "userID, password, firstName, lastName, role", user_values)
 
     # Batch insert students
     file.write("-- Insert Students\n")
@@ -113,6 +112,11 @@ with open('data.sql', 'w') as file:
                        for lid in lecturer_ids]
     batch_inserts(file, "Lecturer", "lecturerID, department", lecturer_values)
 
+    # Batch insert admins
+    file.write("-- Insert Admins\n")
+    admin_values = [f"({aid})" for aid in admin_ids]
+    batch_inserts(file, "Admin", "adminID", admin_values)
+
     file.write("-- Insert Courses\n")
     course_names  = [f"{level} {subject}" for level in levels for subject in subjects]
     fake.random.shuffle(course_names)  
@@ -122,11 +126,16 @@ with open('data.sql', 'w') as file:
         course_num = fake.unique.random_int(min=1000, max=3999)
         
         course_name = course_names[course - 1]
+        course_code = None
         for subj, pref in subjects.items():
             if course_name.endswith(subj):
                 course_code = f"{pref}{course_num}"
-                course_codes.append(course_code)
                 break
+        # Fallback if no subject match found (shouldn't happen with current data)
+        if course_code is None:
+            course_code = f"GEN{course_num}"
+
+        course_codes.append(course_code)
         course_values.append(f"('{course_code}', '{course_name}')")
     
     # Batch insert courses
@@ -171,15 +180,15 @@ with open('data.sql', 'w') as file:
     create_values = [f"({admin}, '{code}')" for admin, code in creates]
     batch_inserts(file, "Creates", "adminID, courseCode", create_values)
 
-    file.write("-- Insert Teachers\n")
+    file.write("-- Insert Teaches\n")
 
-    teacher = set()
+    teaches = set()
     lecturer_course_count = {lid: 0 for lid in lecturer_ids}
 
     # Assign each lecturer at least one course
     for i, lecturer_id in enumerate(lecturer_ids):
         code = course_codes[i]
-        teacher.add((lecturer_id, code))
+        teaches.add((lecturer_id, code))
         lecturer_course_count[lecturer_id] += 1
 
     # Assign remaining courses, ensuring no lecturer exceeds 5 courses
@@ -187,14 +196,14 @@ with open('data.sql', 'w') as file:
         available_lecturers = [lid for lid in lecturer_ids if lecturer_course_count[lid] < 5]
         if available_lecturers:
             lecturer_id = fake.random_element(elements=available_lecturers)
-            teacher.add((lecturer_id, code))
+            teaches.add((lecturer_id, code))
             lecturer_course_count[lecturer_id] += 1
 
     # Batch insert teaching assignments
-    teacher = list(teacher)
-    fake.random.shuffle(teacher)
-    teach_values = [f"({lecturer_id}, '{code}')" for lecturer_id, code in teacher]
-    batch_inserts(file, "Teach", "lecID, courseCode", teach_values)
+    teaches = list(teaches)
+    fake.random.shuffle(teaches)
+    teach_values = [f"({lecturer_id}, '{code}')" for lecturer_id, code in teaches]
+    batch_inserts(file, "Teaches", "lecturerID, courseCode", teach_values)
     
     # Print summary
     print("Data generation complete. Check data.sql")

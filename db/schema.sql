@@ -2,12 +2,14 @@ DROP DATABASE IF EXISTS vleclone;
 CREATE DATABASE vleclone;
 USE vleclone;
 
+-- =================== USER SYSTEM ===================
+
 CREATE TABLE User (
     userID INT PRIMARY KEY,
     password VARCHAR(255),
-    firstName VARCHAR(255),
-    lastName VARCHAR(255),
-    role VARCHAR(255)
+    firstName VARCHAR(80),
+    lastName VARCHAR(80),
+    role VARCHAR(50)
 );
 
 CREATE TABLE Admin (
@@ -21,19 +23,21 @@ CREATE TABLE Student (
 );
 
 CREATE TABLE Lecturer (
-    lecID INT PRIMARY KEY,
+    lecturerID INT PRIMARY KEY,
     department VARCHAR(255),
-    FOREIGN KEY (lecID) REFERENCES User(userID)
+    FOREIGN KEY (lecturerID) REFERENCES User(userID)
 );
 
+-- =================== COURSE SYSTEM ===================
+
 CREATE TABLE Course (
-    courseCode VARCHAR(255) PRIMARY KEY,
+    courseCode VARCHAR(25) PRIMARY KEY,
     courseName VARCHAR(255)
 );
 
-CREATE TABLE Creator (
+CREATE TABLE Creates (
     adminID INT,
-    courseCode VARCHAR(255),
+    courseCode VARCHAR(25),
     PRIMARY KEY (adminID, courseCode),
     FOREIGN KEY (adminID) REFERENCES Admin(adminID),
     FOREIGN KEY (courseCode) REFERENCES Course(courseCode)
@@ -41,24 +45,25 @@ CREATE TABLE Creator (
 
 CREATE TABLE Enroll (
     studentID INT,
-    courseCode VARCHAR(255),
+    courseCode VARCHAR(25),
     PRIMARY KEY (studentID, courseCode),
     FOREIGN KEY (studentID) REFERENCES Student(studentID),
     FOREIGN KEY (courseCode) REFERENCES Course(courseCode)
 );
 
-CREATE TABLE Teach (
-    lecID INT,
-    courseCode VARCHAR(255) UNIQUE,
-    PRIMARY KEY (lecID, courseCode),
-    FOREIGN KEY (lecID) REFERENCES Lecturer(lecID),
+CREATE TABLE Teaches (
+    lecturerID INT,
+    courseCode VARCHAR(25) UNIQUE,
+    PRIMARY KEY (lecturerID, courseCode),
+    FOREIGN KEY (lecturerID) REFERENCES Lecturer(lecturerID),
     FOREIGN KEY (courseCode) REFERENCES Course(courseCode)
 );
 
+-- =================== CONTENT SYSTEM ===================
 
 CREATE TABLE Section (
     secID INT PRIMARY KEY AUTO_INCREMENT,
-    courseCode VARCHAR(255),
+    courseCode VARCHAR(25),
     secName VARCHAR(255),
     FOREIGN KEY (courseCode) REFERENCES Course(courseCode)
 );
@@ -72,9 +77,11 @@ CREATE TABLE CourseContent (
     FOREIGN KEY (secID) REFERENCES Section(secID)
 );
 
+-- =================== FORUM SYSTEM ===================
+
 CREATE TABLE Forum (
     forumID INT PRIMARY KEY AUTO_INCREMENT,
-    courseCode VARCHAR(255),
+    courseCode VARCHAR(25),
     forumName VARCHAR(255),
     FOREIGN KEY (courseCode) REFERENCES Course(courseCode)
 );
@@ -95,10 +102,11 @@ CREATE TABLE Reply (
     FOREIGN KEY (childThreadID) REFERENCES Thread(threadID)
 );
 
+-- =================== CALENDAR & ASSIGNMENT ===================
 
 CREATE TABLE CalendarEvent (
     eventID INT PRIMARY KEY AUTO_INCREMENT,
-    courseCode VARCHAR(255),
+    courseCode VARCHAR(25),
     eventName VARCHAR(255),
     createdDate DATE,
     dueDate DATE,
@@ -121,54 +129,37 @@ CREATE TABLE Submission (
 );
 
 CREATE TABLE Grade (
-    lecID INT,
+    lecturerID INT,
     assignmentID INT,
-    PRIMARY KEY (lecID, assignmentID),
-    FOREIGN KEY (lecID) REFERENCES Lecturer(lecID),
+    PRIMARY KEY (lecturerID, assignmentID),
+    FOREIGN KEY (lecturerID) REFERENCES Lecturer(lecturerID),
     FOREIGN KEY (assignmentID) REFERENCES Assignment(assignmentID)
 );
 
-CREATE TABLE Forum (
-    forumID INT PRIMARY KEY AUTO_INCREMENT,
-    courseCode VARCHAR(255),
-    forumName VARCHAR(255),
-    FOREIGN KEY (courseCode) REFERENCES Course(courseCode)
-);
-
-CREATE TABLE Thread (
-    threadID INT PRIMARY KEY AUTO_INCREMENT,
-    forumID INT,
-    parentThreadID INT,
-    threadTitle VARCHAR(255),
-    threadContent TEXT,
-    FOREIGN KEY (forumID) REFERENCES Forum(forumID),
-    FOREIGN KEY (parentThreadID) REFERENCES Thread(threadID)
-);
-
-CREATE TABLE Reply (
-    userID INT,
-    threadID INT,
-    PRIMARY KEY (userID, threadID),
-    FOREIGN KEY (userID) REFERENCES User(userID),
-    FOREIGN KEY (threadID) REFERENCES Thread(threadID)
-);
 
 /*
 Check for Constraints:
 
-SELECT studentID FROM Enroll GROUP BY studentID 
+SELECT studentID FROM Enroll
+GROUP BY studentID
 HAVING COUNT(courseCode) > 6;
 
-SELECT studentID FROM Enroll GROUP BY studentID 
+SELECT studentID FROM Enroll
+GROUP BY studentID
 HAVING COUNT(courseCode) < 3;
 
-SELECT courseCode FROM Enroll GROUP BY courseCode 
+SELECT courseCode FROM Enroll
+GROUP BY courseCode
 HAVING COUNT(studentID) < 10;
 
-SELECT lecID FROM Teach GROUP BY lecID 
+SELECT lecturerID FROM Teaches
+GROUP BY lecturerID
 HAVING COUNT(courseCode) > 5;
 
-SELECT l.lecID FROM Lecturer l 
-LEFT JOIN Teach t ON t.lecID = t.lecID 
-GROUP BY l.lecID HAVING COUNT(t.courseCode) = 0;
+SELECT l.lecturerID
+FROM Lecturer l
+LEFT JOIN Teaches t
+ON l.lecturerID = t.lecturerID
+GROUP BY l.lecturerID
+HAVING COUNT(t.courseCode) = 0;
 */
