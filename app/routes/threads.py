@@ -5,6 +5,7 @@ from app.services.thread_service import create_reply, get_all_threads, get_repli
 thread_bp = Blueprint("thread", __name__, url_prefix="/threads")
 
 @thread_bp.get("/forum/<int:forum_id>")
+@jwt_required()
 def fetch_all_threads(forum_id):
     try:
         threads = get_all_threads(forum_id)
@@ -13,6 +14,7 @@ def fetch_all_threads(forum_id):
         return {"error": str(e)}, 400
 
 @thread_bp.get("/<int:thread_id>")
+@jwt_required()
 def fetch_thread(thread_id):
     try:
         thread = get_thread(thread_id)
@@ -21,6 +23,7 @@ def fetch_thread(thread_id):
         return {"error": str(e)}, 400
 
 @thread_bp.post("/")
+@jwt_required()
 def add_thread():
     try:
         forum_id = request.json.get("forumID", None)
@@ -34,6 +37,7 @@ def add_thread():
         return {"error": str(e)}, 400
 
 @thread_bp.delete("/<int:thread_id>")
+@jwt_required()
 def remove_thread(thread_id):
     try:
         delete_thread(thread_id)

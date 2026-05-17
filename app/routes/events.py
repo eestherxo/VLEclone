@@ -3,7 +3,7 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from app.services.events_service import *
 from app.services.user_service import get_user
-
+from app.services.course_service import lecturer_teaches_course
 
 event_bp = Blueprint("events", __name__, url_prefix="/events")
 
@@ -37,7 +37,11 @@ def create_course_event():
     if not user or user["role"].lower() != 'lecturer':
         return {"error": "Only lecturers can create course events"}, 403
     
+    # Check if the lecturer teaches the specified course
     course_code = request.json.get("courseCode", None)
+    if not lecturer_teaches_course(user_id, course_code):
+        return {"error": "You are not assigned to teach this course"}, 403
+
     event_name = request.json.get("eventName", None)
     created_date = request.json.get("createdDate", None)
     due_date = request.json.get("dueDate", None)
@@ -91,6 +95,8 @@ def grade_assignment_endpoint():
     if not assignment_id or not student_id or grade_value is None:
         return {"error": "Missing required fields"}, 400
 
+    if not lecturer_owns_event(user_id, assignment_id):
+        return {"error": "You do not have permission to grade this assignment"}, 403
     try:
         grade_assignment(user_id, assignment_id, student_id, grade_value)
         return {"message": "Assignment graded successfully"}, 201
@@ -98,3 +104,25 @@ def grade_assignment_endpoint():
         return {"error": str(e)}, 400
 
 
+@event_bp.post("/assignment")
+@jwt_required()
+def create_assignment_endpoint():
+    user_id = get_jwt_identity()
+    user = get_user(user_id)
+
+    if not user or user["role"].lower() != 'lecturer':
+        return {"error": "Only lecturers can mark events as assignments"}, 403
+
+    event_id = request.json.get("eventID", None)
+
+    if not event_id:
+        return {"error": "Missing required field: eventID"}, 400
+
+    if not lecturer_owns_event(user_id, event_id):
+        return {"error": "You do not have permission to modify this event"}, 403
+    
+    try:
+        create_assignment(event_id)
+        return {"message": f"Event {event_id} successfully marked as an assignment"}, 201
+    except Exception as e:
+        return {"error": str(e)}, 400

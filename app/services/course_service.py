@@ -123,3 +123,23 @@ def get_course_members(course_code):
     connection.close()
 
     return members
+
+def lecturer_teaches_course(lecturer_id, course_code):
+    connection = get_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    query = """
+        SELECT *
+        FROM Teaches
+        WHERE lecturerID = %s
+        AND courseCode = %s
+    """
+
+    cursor.execute(query, (lecturer_id, course_code))
+
+    result = cursor.fetchone()
+
+    cursor.close()
+    connection.close()
+
+    return result is not None

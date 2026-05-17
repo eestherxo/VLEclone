@@ -95,3 +95,25 @@ def grade_assignment(lecturer_id, assignment_id, student_id, grade_value):
     connection.commit()
     cursor.close()
     connection.close()
+
+def lecturer_owns_event(lecturer_id, event_id):
+    connection = get_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    query = """
+        SELECT *
+        FROM CourseEvent ce
+        JOIN Teaches t
+            ON ce.courseCode = t.courseCode
+        WHERE ce.eventID = %s
+        AND t.lecturerID = %s
+    """
+
+    cursor.execute(query, (event_id, lecturer_id))
+
+    result = cursor.fetchone()
+
+    cursor.close()
+    connection.close()
+
+    return result is not None
