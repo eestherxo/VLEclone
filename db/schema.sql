@@ -2,12 +2,14 @@ DROP DATABASE IF EXISTS vleclone;
 CREATE DATABASE vleclone;
 USE vleclone;
 
+-- =================== USER SYSTEM ===================
+
 CREATE TABLE User (
     userID INT PRIMARY KEY,
-    firstName VARCHAR(255),
-    lastName VARCHAR(255),
     password VARCHAR(255),
-    role VARCHAR(255)
+    firstName VARCHAR(80),
+    lastName VARCHAR(80),
+    role VARCHAR(50)
 );
 
 CREATE TABLE Admin (
@@ -21,19 +23,21 @@ CREATE TABLE Student (
 );
 
 CREATE TABLE Lecturer (
-    lecID INT PRIMARY KEY,
+    lecturerID INT PRIMARY KEY,
     department VARCHAR(255),
-    FOREIGN KEY (lecID) REFERENCES User(userID)
+    FOREIGN KEY (lecturerID) REFERENCES User(userID)
 );
 
+-- =================== COURSE SYSTEM ===================
+
 CREATE TABLE Course (
-    courseCode VARCHAR(255) PRIMARY KEY,
+    courseCode VARCHAR(25) PRIMARY KEY,
     courseName VARCHAR(255)
 );
 
-CREATE TABLE Creator (
+CREATE TABLE Creates (
     adminID INT,
-    courseCode VARCHAR(255),
+    courseCode VARCHAR(25),
     PRIMARY KEY (adminID, courseCode),
     FOREIGN KEY (adminID) REFERENCES Admin(adminID),
     FOREIGN KEY (courseCode) REFERENCES Course(courseCode)
@@ -41,24 +45,25 @@ CREATE TABLE Creator (
 
 CREATE TABLE Enroll (
     studentID INT,
-    courseCode VARCHAR(255),
+    courseCode VARCHAR(25),
     PRIMARY KEY (studentID, courseCode),
     FOREIGN KEY (studentID) REFERENCES Student(studentID),
     FOREIGN KEY (courseCode) REFERENCES Course(courseCode)
 );
 
-CREATE TABLE Teach (
-    lecID INT,
-    courseCode VARCHAR(255) UNIQUE,
-    PRIMARY KEY (lecID, courseCode),
-    FOREIGN KEY (lecID) REFERENCES Lecturer(lecID),
+CREATE TABLE Teaches (
+    lecturerID INT,
+    courseCode VARCHAR(25) UNIQUE,
+    PRIMARY KEY (lecturerID, courseCode),
+    FOREIGN KEY (lecturerID) REFERENCES Lecturer(lecturerID),
     FOREIGN KEY (courseCode) REFERENCES Course(courseCode)
 );
 
+-- =================== CONTENT SYSTEM ===================
 
 CREATE TABLE Section (
     secID INT PRIMARY KEY AUTO_INCREMENT,
-    courseCode VARCHAR(255),
+    courseCode VARCHAR(25),
     secName VARCHAR(255),
     FOREIGN KEY (courseCode) REFERENCES Course(courseCode)
 );
@@ -72,9 +77,11 @@ CREATE TABLE CourseContent (
     FOREIGN KEY (secID) REFERENCES Section(secID)
 );
 
+-- =================== FORUM SYSTEM ===================
+
 CREATE TABLE Forum (
     forumID INT PRIMARY KEY AUTO_INCREMENT,
-    courseCode VARCHAR(255),
+    courseCode VARCHAR(25),
     forumName VARCHAR(255),
     FOREIGN KEY (courseCode) REFERENCES Course(courseCode)
 );
@@ -95,10 +102,11 @@ CREATE TABLE Reply (
     FOREIGN KEY (childThreadID) REFERENCES Thread(threadID)
 );
 
+-- =================== CALENDAR & ASSIGNMENT ===================
 
 CREATE TABLE CalendarEvent (
     eventID INT PRIMARY KEY AUTO_INCREMENT,
-    courseCode VARCHAR(255),
+    courseCode VARCHAR(25),
     eventName VARCHAR(255),
     createdDate DATE,
     dueDate DATE,
@@ -107,7 +115,7 @@ CREATE TABLE CalendarEvent (
 
 CREATE TABLE Assignment (
     assignmentID INT PRIMARY KEY,
-    grade INT,
+    maxGrade INT DEFAULT 100,
     FOREIGN KEY (assignmentID) REFERENCES CalendarEvent(eventID)
 );
 
@@ -121,80 +129,61 @@ CREATE TABLE Submission (
 );
 
 CREATE TABLE Grade (
-    lecID INT,
+    lecturerID INT,
+    studentID INT,
     assignmentID INT,
-    PRIMARY KEY (lecID, assignmentID),
-    FOREIGN KEY (lecID) REFERENCES Lecturer(lecID),
+    score INT,
+
+    PRIMARY KEY (studentID, assignmentID),
+    FOREIGN KEY (lecturerID) REFERENCES Lecturer(lecturerID),
+    FOREIGN KEY (studentID) REFERENCES Student(studentID),
     FOREIGN KEY (assignmentID) REFERENCES Assignment(assignmentID)
 );
 
-/* Generating Reports */
+-- =================== Report Views ==========================
 
-CREATE OR REPLACE VIEW PopularCourses AS
-SELECT
-    c.courseCode,
-    c.courseName,
-    COUNT(e.userID) AS studentCount
-FROM Course c
-JOIN Enroll e ON e.courseCode = c.courseCode
-GROUP BY c.courseCode, c.courseName
-HAVING COUNT(e.userID) >= 50;
+-- 1. All courses that have 50 or more students
+CREATE OR REPLACE VIEW vw_courses_high_enrollment AS
+SELECT courseCode, COUNT(studentID) AS total_students
+FROM Enroll
+GROUP BY courseCode
+HAVING COUNT(studentID) >= 50;
 
+-- 2. All students that do 5 or more courses
+CREATE OR REPLACE VIEW vw_students_heavy_load AS
+SELECT studentID, COUNT(courseCode) AS total_courses
+FROM Enroll
+GROUP BY studentID
+HAVING COUNT(courseCode) >= 5;
 
-CREATE OR REPLACE VIEW BusyStudents AS
-SELECT
-    u.userID,
-    u.firstName,
-    u.lastName,
-    COUNT(e.courseCode) AS courseCount
-FROM User u
-JOIN Student s ON s.userID = u.userID
-JOIN Enroll e ON e.userID = u.userID
-GROUP BY u.userID, u.firstName, u.lastName
-HAVING COUNT(e.courseCode) >= 5;
+-- 3. All lecturers that teach 3 or more courses
+CREATE OR REPLACE VIEW vw_lecturers_heavy_load AS
+SELECT lecturerID, COUNT(courseCode) AS total_courses
+FROM Teaches
+GROUP BY lecturerID
+HAVING COUNT(courseCode) >= 3;
 
+-- 4. The 10 most enrolled courses
+CREATE OR REPLACE VIEW vw_top_10_enrolled_courses AS
+SELECT *
+FROM (
+    SELECT courseCode, COUNT(studentID) AS total_students
+    FROM Enroll
+    GROUP BY courseCode
+    ORDER BY total_students DESC
+    LIMIT 10
+) AS top_courses;
 
-CREATE OR REPLACE VIEW BusyLecturers AS
-SELECT
-    u.userID,
-    u.firstName,
-    u.lastName,
-    l.department,
-    COUNT(t.courseCode) AS courseCount
-FROM User u
-JOIN Lecturer l ON l.userID = u.userID
-JOIN Teach t ON t.userID = u.userID
-GROUP BY u.userID, u.firstName, u.lastName, l.department
-HAVING COUNT(t.courseCode) >= 3;
-
-
-CREATE OR REPLACE VIEW MostEnrolledCourses AS
-SELECT
-    c.courseCode,
-    c.courseName,
-    COUNT(e.userID) AS studentCount
-FROM Course c
-JOIN Enroll e ON e.courseCode = c.courseCode
-GROUP BY c.courseCode, c.courseName
-ORDER BY studentCount DESC
-LIMIT 10;
-
-
-CREATE OR REPLACE VIEW TopStudents AS
-SELECT
-    u.userID,
-    u.firstName,
-    u.lastName,
-    AVG(g.score) AS averageGrade,
-    COUNT(g.eventID) AS gradedCount
-FROM User u
-JOIN Student s ON s.userID = u.userID
-JOIN Grade g ON g.userID = u.userID
-GROUP BY u.userID, u.firstName, u.lastName
-ORDER BY averageGrade DESC
-LIMIT 10;
-
-/* -------------------------------------------------------------------- */
+-- 5. The top 10 students with the highest overall averages
+CREATE OR REPLACE VIEW vw_top_10_students_averages AS
+SELECT *
+FROM (
+    SELECT studentID, ROUND(AVG(grade), 2) AS overall_average
+    FROM Grade
+    GROUP BY studentID
+    ORDER BY overall_average DESC
+    LIMIT 10
+) AS top_students;
 
 /*
 Check for Constraints:
@@ -208,10 +197,10 @@ HAVING COUNT(courseCode) < 3;
 SELECT courseCode FROM Enroll GROUP BY courseCode 
 HAVING COUNT(studentID) < 10;
 
-SELECT lecID FROM Teach GROUP BY lecID 
+SELECT lecturerID FROM Teaches GROUP BY lecturerID 
 HAVING COUNT(courseCode) > 5;
 
-SELECT l.lecID FROM Lecturer l 
-LEFT JOIN Teach t ON t.lecID = t.lecID 
-GROUP BY l.lecID HAVING COUNT(t.courseCode) = 0;
+SELECT l.lecturerID FROM Lecturer l 
+LEFT JOIN Teaches t ON l.lecturerID = t.lecturerID 
+GROUP BY l.lecturerID HAVING COUNT(t.courseCode) = 0;
 */
