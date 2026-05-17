@@ -120,3 +120,14 @@ def course_members(course_code):
         return {"members": members}, 200
     except Exception as e:
         return {"error": str(e)}, 400
+    
+
+@course_bp.get("/lecturers")
+@jwt_required()
+def get_all_lecturers():
+    try:
+        from app.services.user_service import get_lecturers
+        lecturers = get_lecturers()
+        return {"lecturers": lecturers}, 200
+    except Exception as e:
+        return {"error": str(e)}, 400
