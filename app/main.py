@@ -5,7 +5,6 @@ from .db import config
 from .routes import auth_bp, course_bp, event_bp, forum_bp, thread_bp
 
 
-
 app = Flask(__name__)
 
 # CORS Configuration

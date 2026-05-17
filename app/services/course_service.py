@@ -49,8 +49,8 @@ def get_lecturer_courses(lecturer_id):
     query = """
         SELECT c.courseCode, c.courseName
         FROM Course c
-        JOIN Teach t ON c.courseCode = t.courseCode
-        WHERE t.lecID = %s
+        JOIN Teaches t ON c.courseCode = t.courseCode
+        WHERE t.lecturerID = %s
     """
     cursor.execute(query, (lecturer_id,))
     courses = cursor.fetchall()
@@ -65,7 +65,7 @@ def check_course_lecturer(course_code):
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
 
-    query = "SELECT lecID FROM Teach WHERE courseCode = %s"
+    query = "SELECT lecturerID FROM Teaches WHERE courseCode = %s"
     cursor.execute(query, (course_code,))
     lecturer = cursor.fetchone()
 
@@ -79,7 +79,7 @@ def assign_lecturer(lecturer_id, course_code):
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
 
-    query = "INSERT INTO Teach (lecID, courseCode) VALUES (%s, %s)"
+    query = "INSERT INTO Teaches (lecturerID, courseCode) VALUES (%s, %s)"
     cursor.execute(query, (lecturer_id, course_code))
 
     connection.commit()
@@ -113,7 +113,7 @@ def get_course_members(course_code):
 
         SELECT u.firstName, u.lastName, u.role
         FROM User u
-        JOIN Teach t ON u.userID = t.lecID
+        JOIN Teaches t ON u.userID = t.lecturerID
         WHERE t.courseCode = %s
     """
     cursor.execute(query, (course_code, course_code))

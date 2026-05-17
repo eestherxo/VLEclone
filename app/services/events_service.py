@@ -85,7 +85,7 @@ def grade_assignment(lecturer_id, assignment_id, student_id, grade_value):
         raise Exception("Student has not submitted this assignment")
 
     # Insert grade record
-    query = "INSERT INTO Grade (lecID, assignmentID) VALUES (%s, %s)"
+    query = "INSERT INTO Grade (lecturerID, assignmentID) VALUES (%s, %s)"
     cursor.execute(query, (lecturer_id, assignment_id))
 
     # Update the grade value in Assignment table

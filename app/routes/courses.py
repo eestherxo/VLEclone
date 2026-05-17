@@ -92,7 +92,7 @@ def lecturer_assignment():
 
 @course_bp.post("/enroll-student")
 @jwt_required()
-def enroll_student():
+def enroll_student_route():
     user_id = get_jwt_identity()
     user = get_user(user_id)
 

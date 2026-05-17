@@ -4,7 +4,7 @@ def get_all_threads(forum_id):
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
     
-    query = "SELECT threadTitle, content FROM Thread WHERE forumID = %s"
+    query = "SELECT threadID, threadTitle, content FROM Thread WHERE forumID = %s"
     cursor.execute(query, (forum_id,))
     
     threads = cursor.fetchall()

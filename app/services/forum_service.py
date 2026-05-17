@@ -4,7 +4,7 @@ def get_all_forums(course_code):
     connection = get_connection()
     
     cursor = connection.cursor(dictionary=True)
-    query = "SELECT forumName FROM Forum WHERE courseCode = %s"
+    query = "SELECT forumID, forumName FROM Forum WHERE courseCode = %s"
     cursor.execute(query, (course_code,))
     
     forums = cursor.fetchall()
