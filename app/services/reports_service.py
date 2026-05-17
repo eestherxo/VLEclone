@@ -46,17 +46,12 @@ def get_busy_lecturers():
 
 
 def get_most_enrolled_courses():
-    """The 10 most enrolled courses"""
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
-
-    query = "SELECT * FROM TopEnrolledCourses ORDER BY studentCount DESC"
-    cursor.execute(query)
+    cursor.execute("SELECT * FROM TopEnrolledCourses ORDER BY studentCount DESC")  # was MostEnrolledCourses
     courses = cursor.fetchall()
-
     cursor.close()
     connection.close()
-
     return courses
 
 

@@ -4,7 +4,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.user_service import get_user
 from app.services.reports_service import *
 
-report_bp = Blueprint("report", __name__, url_prefix="/report")
+report_bp = Blueprint("report", __name__, url_prefix="/reports")
 
 
 def _require_admin(user_id):

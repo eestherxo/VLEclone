@@ -7,7 +7,7 @@
       <div class="course-hero" :style="{ background: heroColor }">
         <div class="hex-overlay"></div>
         <div class="container hero-inner">
-          <button class="back-btn" @click="$router.push('/dashboard')">← My Courses</button>
+          <button class="back-btn" @click="$router.push('/my-courses')">← My Courses</button>
           <div class="hero-content">
             <span class="course-code-badge">{{ course.courseCode || course.code }}</span>
             <h1>{{ course.courseName || course.name }}</h1>
@@ -194,16 +194,18 @@
             <p>No events scheduled{{ canManageCourse ? ' — add one above.' : '.' }}</p>
           </div>
           <div v-else class="events-list">
-            <div v-for="e in events" :key="e.id || e.eventID" class="event-item card card-body flex gap-3 items-center">
-              <div class="event-date-box">
-                <div class="event-month">{{ eventMonth(e.date || e.eventDate) }}</div>
-                <div class="event-day">{{ eventDay(e.date || e.eventDate) }}</div>
-              </div>
-              <div>
-                <div class="font-medium">{{ e.title || e.eventName }}</div>
-                <div class="text-sm text-muted">{{ e.description }}</div>
-              </div>
-            </div>
+            <div v-for="e in events" :key="e.eventID || e.id" class="event-item card card-body flex gap-3 items-center">
+  <div class="event-date-box">
+    <div class="event-month">{{ eventMonth(e.dueDate || e.eventDate || e.date) }}</div>
+    <div class="event-day">{{ eventDay(e.dueDate || e.eventDate || e.date) }}</div>
+  </div>
+  <div style="flex:1">
+    <div class="font-medium">{{ e.eventName || e.title }}</div>
+    <div class="text-sm text-muted">{{ e.description }}</div>
+  </div>
+  <span v-if="e.isAssignment" class="badge badge-red">📝 Assignment</span>
+  <span v-else class="badge badge-blue">📅 Event</span>
+</div>
           </div>
         </div>
 
@@ -584,7 +586,7 @@ const creatingAssign = ref(false)
 const showSubmit     = ref(false)
 const showGrade      = ref(false)
 const selectedAssignment = ref(null)
-const submission     = ref({ content: '' })
+const submission = ref({ content: '', fileName: '', notes: '' })
 const submitting     = ref(false)
 const submitError    = ref('')
 const gradeSubmissions = ref([])
@@ -624,8 +626,15 @@ const submitAssignment = async () => {
 const createAssignment = async () => {
   assignError.value = ''; creatingAssign.value = true
   try {
-    const res = await assignmentService.create({ ...newAssign.value, courseCode: courseCode.value })
-    assignments.value.unshift(res.data); showAddAssignment.value = false
+    await assignmentService.create({ ...newAssign.value, courseCode: courseCode.value })
+    // refetch instead of pushing res.data
+    const r = await assignmentService.getByCourse(courseCode.value)
+    assignments.value = (r.data.assignments || r.data).map(a => ({
+      ...a,
+      title: a.assignmentName || a.title,
+      id:    a.assignmentID   || a.id,
+    }))
+    showAddAssignment.value = false
     newAssign.value = { title: '', description: '', due_date: '', weight: 100 }
   } catch (e) { assignError.value = e.response?.data?.error || 'Failed to create.' }
   finally { creatingAssign.value = false }
@@ -644,8 +653,11 @@ const showAddForum= ref(false)
 const newForum    = ref({ title: '', description: '' })
 const createForum = async () => {
   try {
-    const res = await forumService.create({ ...newForum.value, courseCode: courseCode.value })
-    forums.value.push(res.data); showAddForum.value = false; newForum.value = { title: '', description: '' }
+    await forumService.create({ ...newForum.value, courseCode: courseCode.value })
+    const r = await forumService.getByCourse(courseCode.value)
+    forums.value = r.data.forums || r.data
+    showAddForum.value = false
+    newForum.value = { title: '', description: '' }
   } catch { alert('Failed to create forum.') }
 }
 
@@ -688,7 +700,8 @@ const createEvent = async () => {
       createdDate: new Date().toISOString().split('T')[0],
       dueDate:     newEvent.value.date,
     })
-    await loadTab('calendar')  // refresh the list
+    events.value = []          // 👈 clear so loadTab refetches
+    await loadTab('calendar')
     showAddEvent.value = false
     newEvent.value = { title: '', description: '', date: '' }
   } catch (e) {
@@ -722,15 +735,25 @@ const formatDate = d => d ? new Date(d).toLocaleDateString('en-JM',{year:'numeri
 const loadTab = async tab => {
   const code = courseCode.value
   if (tab==='content' && !contentItems.value.length) {
-    contentLoading.value = true
-    try { const r = await contentService.getByCourse(code); contentItems.value = r.data.content||r.data } catch {}
-    contentLoading.value = false
-  }
+  contentLoading.value = true
+  try { 
+    const r = await contentService.getByCourse(code)
+    contentItems.value = r.data.sections || r.data.content || r.data  // was r.data.content||r.data
+  } catch {}
+  contentLoading.value = false
+    }
   if (tab==='assignments' && !assignments.value.length) {
-    assignLoading.value = true
-    try { const r = await assignmentService.getByCourse(code); assignments.value = r.data.assignments||r.data } catch {}
-    assignLoading.value = false
-  }
+  assignLoading.value = true
+  try {
+    const r = await assignmentService.getByCourse(code)
+    assignments.value = (r.data.assignments || r.data).map(a => ({
+      ...a,
+      title: a.assignmentName || a.title,
+      id:    a.assignmentID   || a.id,
+    }))
+  } catch {}
+  assignLoading.value = false
+}
   if (tab==='forums' && !forums.value.length) {
     forumLoading.value = true
     try { const r = await forumService.getByCourse(code); forums.value = r.data.forums||r.data } catch {}

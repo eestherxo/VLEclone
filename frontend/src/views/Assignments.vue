@@ -44,18 +44,18 @@
 
         <!-- Assignment Cards -->
         <div v-else class="assignments-list">
-          <div v-for="a in assignments" :key="a.id" class="assignment-card card">
+          <div v-for="a in assignments" :key="a.assignmentID || a.id" class="assign-card card card-body">
             <div class="card-body">
               <div class="assign-top">
                 <div>
-                  <h3 class="assign-title">{{ a.title }}</h3>
+                    <h3 class="assign-title">{{ a.assignmentName || a.title }}</h3>
                   <p class="text-muted text-sm mt-1">{{ a.description }}</p>
                 </div>
                 <span :class="['badge', statusBadge(a).class]">{{ statusBadge(a).label }}</span>
               </div>
 
               <div class="assign-meta">
-                <span class="meta-chip">📅 Due: {{ formatDate(a.due_date) }}</span>
+                 <span class="meta-chip">📅 Due: {{ formatDate(a.dueDate || a.due_date) }}</span>
                 <span class="meta-chip">🏆 Weight: {{ a.weight || 100 }}%</span>
                 <span v-if="a.my_grade !== undefined" class="meta-chip grade-chip">
                   Grade: <strong>{{ a.my_grade }}%</strong>
@@ -214,7 +214,7 @@ const avgGrade = computed(() => {
 // Submit
 const showSubmit = ref(false)
 const selectedAssignment = ref(null)
-const submission = ref({ content: '' })
+const submission = ref({ content: '', fileName: '', notes: '' })
 const submitting = ref(false)
 const submitError = ref('')
 
