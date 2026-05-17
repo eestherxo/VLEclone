@@ -98,3 +98,22 @@ def grade_assignment_endpoint():
         return {"error": str(e)}, 400
 
 
+@event_bp.get("/assignment/create")
+@jwt_required()
+def create_assignment():
+    user_id = get_jwt_identity()
+    user = get_user(user_id)
+
+    if not user or user["role"].lower() != 'lecturer':
+        return {"error": "Only lecturers can create assignments"}, 403
+
+    event_id = request.json.get("eventID", None)
+
+    if not event_id:
+        return {"error": "Missing required fields"}, 400
+
+    try:
+        create_assignment(event_id)
+        return {"message": "Assignment created successfully"}, 201
+    except Exception as e:
+        return {"error": str(e)}, 400

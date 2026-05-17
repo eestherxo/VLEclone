@@ -42,6 +42,7 @@ def add_forum():
         return {"error": str(e)}, 400
 
 @forum_bp.delete("/<int:forum_id>")
+@jwt_required()
 def remove_forum(forum_id):
     try:
         delete_forum(forum_id)
