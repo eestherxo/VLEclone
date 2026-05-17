@@ -5,10 +5,12 @@ fake = Faker()
 STUDENTS = 100000
 COURSES = 200
 LECTURERS = 40
+ADMINS = 10
 BATCH_SIZE = 1000  # Number of rows per batch insert
 
 student_ids = []
 lecturer_ids = []
+admin_ids = []
 course_codes = []
 
 departments = ["Computing", "Chemistry", "Physics", "Mathematics", "Biology"]
@@ -84,7 +86,15 @@ with open('data.sql', 'w') as file:
         pwd = fake.password(length=8, special_chars=True, digits=True, upper_case=True, lower_case=True).replace("'", "''")
         users.append((lid, fname, lname, pwd, 'Lecturer'))
 
- 
+    # Generate Admin Users
+    for admin in range(1, ADMINS + 1):
+        aid = fake.unique.random_number(digits=6, fix_len=True)
+        admin_ids.append(aid)
+        fname = fake.first_name().replace("'", "''")  
+        lname = fake.last_name().replace("'", "''") 
+        pwd = fake.password(length=8, special_chars=True, digits=True, upper_case=True, lower_case=True).replace("'", "''")
+        users.append((aid, pwd, fname, lname, 'Admin'))
+
     # Batch insert users
     fake.random.shuffle(users)
     file.write("-- Insert Users\n")
@@ -101,7 +111,7 @@ with open('data.sql', 'w') as file:
     file.write("-- Insert Lecturers\n")
     lecturer_values = [f"({lid}, '{fake.random_element(elements=departments)}')" 
                        for lid in lecturer_ids]
-    batch_inserts(file, "Lecturer", "lecID, department", lecturer_values)
+    batch_inserts(file, "Lecturer", "lecturerID, department", lecturer_values)
 
     file.write("-- Insert Courses\n")
     course_names  = [f"{level} {subject}" for level in levels for subject in subjects]
@@ -149,6 +159,18 @@ with open('data.sql', 'w') as file:
     enrollment_values = [f"({student}, '{course}')" for student, course in enrollments]
     batch_inserts(file, "Enroll", "studentID, courseCode", enrollment_values)
 
+    file.write("-- Insert Creates\n")
+
+    creates = []
+
+    # assign each course to a random admin
+    for code in course_codes:
+        admin = fake.random_element(elements=admin_ids)
+        creates.append((admin, code))
+
+    create_values = [f"({admin}, '{code}')" for admin, code in creates]
+    batch_inserts(file, "Creates", "adminID, courseCode", create_values)
+
     file.write("-- Insert Teachers\n")
 
     teacher = set()
@@ -179,6 +201,13 @@ with open('data.sql', 'w') as file:
     print(f"Generated:")
     print(f"  - {STUDENTS:,} students")
     print(f"  - {LECTURERS} lecturers")
+    print(f"  - {ADMINS} admins")
     print(f"  - {COURSES} courses")
     print(f"  - Enrollments: ~{len(enrollment_values):,}")
     print(f"  - Teaching assignments: {len(teach_values)}")
+
+    print("\nSAMPLE TEST IDS:")
+    print(f"Student: {student_ids[0]}")
+    print(f"Lecturer: {lecturer_ids[0]}")
+    print(f"Admin: {admin_ids[0]}")
+    print(f"Course: {course_codes[0]}")

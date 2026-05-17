@@ -4,9 +4,9 @@ USE vleclone;
 
 CREATE TABLE User (
     userID INT PRIMARY KEY,
+    password VARCHAR(255),
     firstName VARCHAR(255),
     lastName VARCHAR(255),
-    password VARCHAR(255),
     role VARCHAR(255)
 );
 
@@ -128,7 +128,30 @@ CREATE TABLE Grade (
     FOREIGN KEY (assignmentID) REFERENCES Assignment(assignmentID)
 );
 
+CREATE TABLE Forum (
+    forumID INT PRIMARY KEY AUTO_INCREMENT,
+    courseCode VARCHAR(255),
+    forumName VARCHAR(255),
+    FOREIGN KEY (courseCode) REFERENCES Course(courseCode)
+);
 
+CREATE TABLE Thread (
+    threadID INT PRIMARY KEY AUTO_INCREMENT,
+    forumID INT,
+    parentThreadID INT,
+    threadTitle VARCHAR(255),
+    threadContent TEXT,
+    FOREIGN KEY (forumID) REFERENCES Forum(forumID),
+    FOREIGN KEY (parentThreadID) REFERENCES Thread(threadID)
+);
+
+CREATE TABLE Reply (
+    userID INT,
+    threadID INT,
+    PRIMARY KEY (userID, threadID),
+    FOREIGN KEY (userID) REFERENCES User(userID),
+    FOREIGN KEY (threadID) REFERENCES Thread(threadID)
+);
 
 /*
 Check for Constraints:
