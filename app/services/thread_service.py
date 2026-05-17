@@ -3,27 +3,19 @@ from app.db import get_connection
 def get_all_threads(forum_id):
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
-    
-    query = "SELECT threadID, threadTitle, content FROM Thread WHERE forumID = %s"
-    cursor.execute(query, (forum_id,))
-    
+    cursor.execute("SELECT threadID, threadTitle, content FROM Thread WHERE forumID = %s", (forum_id,))
     threads = cursor.fetchall()
     cursor.close()
     connection.close()
-    
     return threads
 
 def get_thread(thread_id):
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
-    
-    query = "SELECT threadTitle, content FROM Thread WHERE threadID = %s"
-    cursor.execute(query, (thread_id,))
-    
+    cursor.execute("SELECT threadID, threadTitle, content FROM Thread WHERE threadID = %s", (thread_id,))
     thread = cursor.fetchone()
     cursor.close()
     connection.close()
-    
     return thread
 
 def create_thread(forum_id, thread_title, content):

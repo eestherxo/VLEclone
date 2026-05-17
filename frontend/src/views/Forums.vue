@@ -57,8 +57,12 @@ const err        = ref('')
 const create = async () => {
   err.value = ''; creating.value = true
   try {
-    const res = await forumService.create({ ...newForum.value, courseCode: courseId.value })
-    forums.value.push(res.data); showCreate.value = false; newForum.value = { title:'', description:'' }
+    await forumService.create({ ...newForum.value, courseCode: courseId.value })
+    // refetch instead of pushing res.data
+    const r = await forumService.getByCourse(courseId.value)
+    forums.value = r.data.forums || r.data
+    showCreate.value = false
+    newForum.value = { title: '', description: '' }
   } catch(e) { err.value = e.response?.data?.error || 'Failed.' }
   finally { creating.value = false }
 }

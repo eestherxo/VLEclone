@@ -60,5 +60,14 @@ def get_user(user_id):
     connection.close()
     return user
 
+def get_lecturers():
+    connection = get_connection()
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute("SELECT userID, firstName, lastName FROM User WHERE role = 'lecturer'")
+    lecturers = cursor.fetchall()
+    cursor.close()
+    connection.close()
+    return lecturers
+
 
 

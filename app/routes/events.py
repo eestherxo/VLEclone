@@ -111,7 +111,7 @@ def create_assignment_endpoint():
     user = get_user(user_id)
 
     if not user or user["role"].lower() != 'lecturer':
-        return {"error": "Only lecturers can mark events as assignments"}, 403
+        return {"error": "Only lecturers can create assignments"}, 403
 
     event_id = request.json.get("eventID", None)
 
