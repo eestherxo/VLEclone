@@ -87,7 +87,7 @@ def assign_lecturer(lecturer_id, course_code):
     connection.close()
 
 
-def enroll_student(student_id, course_code):
+def insert_enrollment(student_id, course_code):
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
 

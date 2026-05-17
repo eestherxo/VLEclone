@@ -106,7 +106,7 @@ def enroll_student():
         return {"error": "Missing required fields"}, 400
 
     try:
-        enroll_student(student_id, course_code)
+        insert_enrollment(student_id, course_code)
         return {"message": "Student enrolled successfully"}, 201
     except Exception as e:
         return {"error": str(e)}, 400
