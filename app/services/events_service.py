@@ -85,12 +85,8 @@ def grade_assignment(lecturer_id, assignment_id, student_id, grade_value):
         raise Exception("Student has not submitted this assignment")
 
     # Insert grade record
-    query = "INSERT INTO Grade (lecturerID, assignmentID) VALUES (%s, %s)"
-    cursor.execute(query, (lecturer_id, assignment_id))
-
-    # Update the grade value in Assignment table
-    update_query = "UPDATE Assignment SET grade = %s WHERE assignmentID = %s"
-    cursor.execute(update_query, (grade_value, assignment_id))
+    query = "INSERT INTO Grade (lecturerID, studentID, assignmentID, score) VALUES (%s, %s, %s, %s)"
+    cursor.execute(query, (lecturer_id, student_id, assignment_id, grade_value))
 
     connection.commit()
     cursor.close()
@@ -102,7 +98,7 @@ def lecturer_owns_event(lecturer_id, event_id):
 
     query = """
         SELECT *
-        FROM CourseEvent ce
+        FROM CalendarEvent ce
         JOIN Teaches t
             ON ce.courseCode = t.courseCode
         WHERE ce.eventID = %s
