@@ -128,7 +128,73 @@ CREATE TABLE Grade (
     FOREIGN KEY (assignmentID) REFERENCES Assignment(assignmentID)
 );
 
+/* Generating Reports */
 
+CREATE OR REPLACE VIEW PopularCourses AS
+SELECT
+    c.courseCode,
+    c.courseName,
+    COUNT(e.userID) AS studentCount
+FROM Course c
+JOIN Enroll e ON e.courseCode = c.courseCode
+GROUP BY c.courseCode, c.courseName
+HAVING COUNT(e.userID) >= 50;
+
+
+CREATE OR REPLACE VIEW BusyStudents AS
+SELECT
+    u.userID,
+    u.firstName,
+    u.lastName,
+    COUNT(e.courseCode) AS courseCount
+FROM User u
+JOIN Student s ON s.userID = u.userID
+JOIN Enroll e ON e.userID = u.userID
+GROUP BY u.userID, u.firstName, u.lastName
+HAVING COUNT(e.courseCode) >= 5;
+
+
+CREATE OR REPLACE VIEW BusyLecturers AS
+SELECT
+    u.userID,
+    u.firstName,
+    u.lastName,
+    l.department,
+    COUNT(t.courseCode) AS courseCount
+FROM User u
+JOIN Lecturer l ON l.userID = u.userID
+JOIN Teach t ON t.userID = u.userID
+GROUP BY u.userID, u.firstName, u.lastName, l.department
+HAVING COUNT(t.courseCode) >= 3;
+
+
+CREATE OR REPLACE VIEW MostEnrolledCourses AS
+SELECT
+    c.courseCode,
+    c.courseName,
+    COUNT(e.userID) AS studentCount
+FROM Course c
+JOIN Enroll e ON e.courseCode = c.courseCode
+GROUP BY c.courseCode, c.courseName
+ORDER BY studentCount DESC
+LIMIT 10;
+
+
+CREATE OR REPLACE VIEW TopStudents AS
+SELECT
+    u.userID,
+    u.firstName,
+    u.lastName,
+    AVG(g.score) AS averageGrade,
+    COUNT(g.eventID) AS gradedCount
+FROM User u
+JOIN Student s ON s.userID = u.userID
+JOIN Grade g ON g.userID = u.userID
+GROUP BY u.userID, u.firstName, u.lastName
+ORDER BY averageGrade DESC
+LIMIT 10;
+
+/* -------------------------------------------------------------------- */
 
 /*
 Check for Constraints:

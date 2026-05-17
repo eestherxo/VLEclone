@@ -77,7 +77,7 @@ def create_course_content():
 
 
 # Show all course content (separated by section)
-@content_bp.get("/course/<course_code>")
+@content_bp.get("/show")
 @jwt_required()
 def get_course_content(course_code):
     user_id = get_jwt_identity()
