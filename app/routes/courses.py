@@ -77,8 +77,6 @@ def lecturer_assignment():
         return {"error": "Missing required fields"}, 400
     
     existing_lecturer = check_course_lecturer(course_code)
-    if existing_lecturer:
-        return {"error": "Course already has a lecturer assigned"}, 400
 
     if existing_lecturer:
         return {"error": "Course already has a lecturer assigned"}, 400
@@ -92,7 +90,7 @@ def lecturer_assignment():
 
 @course_bp.post("/enroll-student")
 @jwt_required()
-def enroll_student():
+def enroll_student_route():
     user_id = get_jwt_identity()
     user = get_user(user_id)
 

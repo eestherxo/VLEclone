@@ -2,6 +2,7 @@ from flask import Blueprint, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from app.services.forum_service import get_all_forums, get_forum, create_forum, delete_forum
 from app.services.user_service import get_user
+from app.services.course_service import lecturer_teaches_course
 
 forum_bp = Blueprint("forum", __name__, url_prefix="/forums")
 
@@ -27,11 +28,22 @@ def fetch_forum(forum_id):
 @jwt_required() 
 def add_forum():
     user_id = get_jwt_identity()  
+<<<<<<< HEAD
     user = get_user(user_id)
     print(f"DEBUG: user_id={user_id}, user={user}")  # 👈 add this
     if not user or user["role"].lower() not in ['lecturer', 'admin']:
         return {"error": "Only lecturers or admins can create forums"}, 403
+=======
+    user = get_user(user_id) 
+    if not user or user["role"].lower() != "lecturer":  
+        return {"error": "Only lecturers can create forums"}, 403
+>>>>>>> f252c1a3d4b29efd644fb6d271fb82e89ae52a8b
     
+    # Check if the lecturer teaches the specified course
+    course_code = request.json.get("courseCode", None)
+    if not lecturer_teaches_course(user_id, course_code):
+        return {"error": "You are not assigned to teach this course"}, 403
+
     try:
         course_code = request.json.get("courseCode", None)
         forum_name = request.json.get("forumName", None)
