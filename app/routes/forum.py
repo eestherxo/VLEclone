@@ -29,7 +29,7 @@ def fetch_forum(forum_id):
 def add_forum():
     user_id = get_jwt_identity()  
     user = get_user(user_id) 
-    if not user or user["role"] != "lecturer":  
+    if not user or user["role"].lower() != "lecturer":  
         return {"error": "Only lecturers can create forums"}, 403
     
     # Check if the lecturer teaches the specified course

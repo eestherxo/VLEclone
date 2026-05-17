@@ -77,8 +77,6 @@ def lecturer_assignment():
         return {"error": "Missing required fields"}, 400
     
     existing_lecturer = check_course_lecturer(course_code)
-    if existing_lecturer:
-        return {"error": "Course already has a lecturer assigned"}, 400
 
     if existing_lecturer:
         return {"error": "Course already has a lecturer assigned"}, 400

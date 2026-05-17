@@ -115,7 +115,7 @@ CREATE TABLE CalendarEvent (
 
 CREATE TABLE Assignment (
     assignmentID INT PRIMARY KEY,
-    grade INT,
+    maxGrade INT DEFAULT 100,
     FOREIGN KEY (assignmentID) REFERENCES CalendarEvent(eventID)
 );
 
@@ -130,9 +130,13 @@ CREATE TABLE Submission (
 
 CREATE TABLE Grade (
     lecturerID INT,
+    studentID INT,
     assignmentID INT,
-    PRIMARY KEY (lecturerID, assignmentID),
+    score INT,
+
+    PRIMARY KEY (studentID, assignmentID),
     FOREIGN KEY (lecturerID) REFERENCES Lecturer(lecturerID),
+    FOREIGN KEY (studentID) REFERENCES Student(studentID),
     FOREIGN KEY (assignmentID) REFERENCES Assignment(assignmentID)
 );
 
@@ -140,26 +144,19 @@ CREATE TABLE Grade (
 /*
 Check for Constraints:
 
-SELECT studentID FROM Enroll
-GROUP BY studentID
+SELECT studentID FROM Enroll GROUP BY studentID 
 HAVING COUNT(courseCode) > 6;
 
-SELECT studentID FROM Enroll
-GROUP BY studentID
+SELECT studentID FROM Enroll GROUP BY studentID 
 HAVING COUNT(courseCode) < 3;
 
-SELECT courseCode FROM Enroll
-GROUP BY courseCode
+SELECT courseCode FROM Enroll GROUP BY courseCode 
 HAVING COUNT(studentID) < 10;
 
-SELECT lecturerID FROM Teaches
-GROUP BY lecturerID
+SELECT lecturerID FROM Teaches GROUP BY lecturerID 
 HAVING COUNT(courseCode) > 5;
 
-SELECT l.lecturerID
-FROM Lecturer l
-LEFT JOIN Teaches t
-ON l.lecturerID = t.lecturerID
-GROUP BY l.lecturerID
-HAVING COUNT(t.courseCode) = 0;
+SELECT l.lecturerID FROM Lecturer l 
+LEFT JOIN Teaches t ON l.lecturerID = t.lecturerID 
+GROUP BY l.lecturerID HAVING COUNT(t.courseCode) = 0;
 */
