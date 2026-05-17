@@ -106,7 +106,7 @@ def enroll_student():
         return {"error": "Missing required fields"}, 400
 
     try:
-        enroll_student(student_id, course_code)
+        insert_enrollment(student_id, course_code)
         return {"message": "Student enrolled successfully"}, 201
     except Exception as e:
         return {"error": str(e)}, 400
@@ -118,5 +118,16 @@ def course_members(course_code):
     try:
         members = get_course_members(course_code)
         return {"members": members}, 200
+    except Exception as e:
+        return {"error": str(e)}, 400
+    
+
+@course_bp.get("/lecturers")
+@jwt_required()
+def get_all_lecturers():
+    try:
+        from app.services.user_service import get_lecturers
+        lecturers = get_lecturers()
+        return {"lecturers": lecturers}, 200
     except Exception as e:
         return {"error": str(e)}, 400

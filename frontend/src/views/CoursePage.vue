@@ -207,47 +207,108 @@
           </div>
         </div>
 
-        <!-- ADMIN TAB (admin only) -->
-        <div v-if="activeTab === 'admin'">
-          <div class="section-header"><h2>Course Administration</h2></div>
-          <div class="admin-grid">
-            <div class="card card-body">
-              <h3 class="admin-card-title">Assign Lecturer</h3>
-              <p class="text-sm text-muted mt-1">Assign a lecturer to this course</p>
-              <div class="form-group" style="margin-top:16px">
-                <label class="form-label">Lecturer ID</label>
-                <input v-model="assignForm.lecturerId" type="number" class="form-control" placeholder="Enter lecturer's ID number" />
-              </div>
-              <button class="btn btn-primary" @click="doAssignLecturer">Assign Lecturer</button>
-            </div>
-          </div>
-        </div>
-
+       <!-- ADMIN TAB -->
+<div v-if="activeTab === 'admin'">
+  <div class="section-header"><h2>Course Administration</h2></div>
+  <div class="admin-grid">
+    <div class="card card-body">
+      <h3 class="admin-card-title">Assign Lecturer</h3>
+      <p class="text-sm text-muted mt-1">Assign a lecturer to this course</p>
+      <div class="form-group" style="margin-top:16px">
+        <label class="form-label">Select Lecturer</label>
+        <div v-if="lecturersLoading" class="spinner-sm"></div>
+        <select v-else v-model="assignForm.lecturerId" class="form-control">
+          <option value="" disabled>— choose a lecturer —</option>
+          <option v-for="l in lecturers" :key="l.userID" :value="l.userID">
+            {{ l.firstName }} {{ l.lastName }} ({{ l.userID }})
+          </option>
+        </select>
+      </div>
+      <button class="btn btn-primary" @click="doAssignLecturer" :disabled="!assignForm.lecturerId">
+        Assign Lecturer
+      </button>
+    </div>
+  </div>
+</div>
       </div>
     </template>
 
     <!-- ── MODALS ── -->
 
     <!-- Add Content -->
-    <div v-if="showAddContent" class="modal-backdrop" @click.self="showAddContent = false">
-      <div class="modal">
-        <div class="modal-header"><h3>Add Content</h3><button class="close-btn" @click="showAddContent = false">✕</button></div>
-        <div class="modal-body">
-          <div class="form-group"><label class="form-label">Title</label><input v-model="newContent.title" class="form-control" placeholder="e.g. Week 1 Slides" /></div>
-          <div class="form-group"><label class="form-label">Type</label>
-            <select v-model="newContent.type" class="form-control">
-              <option value="link">Link</option><option value="file">File</option><option value="slide">Slides</option>
-            </select>
-          </div>
-          <div class="form-group"><label class="form-label">URL</label><input v-model="newContent.url" class="form-control" placeholder="https://…" /></div>
-          <div class="form-group"><label class="form-label">Section</label><input v-model="newContent.section" class="form-control" placeholder="e.g. Week 1" /></div>
+<div v-if="showAddContent" class="modal-backdrop" @click.self="showAddContent = false">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3>Add Course Content</h3>
+      <button class="close-btn" @click="showAddContent = false">✕</button>
+    </div>
+    <div class="modal-body">
+      <div v-if="contentError" class="alert alert-error">{{ contentError }}</div>
+
+      <div class="form-group">
+        <label class="form-label">Section Name</label>
+        <input v-model="newContent.section" class="form-control" placeholder="e.g. Week 1" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Content Title</label>
+        <input v-model="newContent.title" class="form-control" placeholder="e.g. Week 1 Slides" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <div class="type-selector">
+          <button v-for="t in ['link','file','slide']" :key="t"
+            :class="['type-btn', newContent.type === t && 'active']"
+            @click="newContent.type = t; newContent.url = ''">
+            {{ t === 'link' ? '🔗 Link' : t === 'file' ? '📄 File' : '📊 Slide' }}
+          </button>
         </div>
-        <div class="modal-footer">
-          <button class="btn btn-outline" @click="showAddContent = false">Cancel</button>
-          <button class="btn btn-primary" @click="addContent">Add</button>
+      </div>
+
+      <!-- Link input -->
+      <div v-if="newContent.type === 'link'" class="form-group">
+        <label class="form-label">URL</label>
+        <input v-model="newContent.url" class="form-control" placeholder="https://…" />
+      </div>
+
+      <!-- File / Slide drag-and-drop -->
+      <div v-else class="form-group">
+        <label class="form-label">{{ newContent.type === 'slide' ? 'Slide File' : 'File' }}</label>
+        <div
+          class="drop-zone"
+          :class="{ 'drag-over': dragging }"
+          @dragover.prevent="dragging = true"
+          @dragleave="dragging = false"
+          @drop.prevent="handleFileDrop($event, 'content')"
+          @click="$refs.contentFileInput.click()"
+        >
+          <input ref="contentFileInput" type="file"
+            :accept="newContent.type === 'slide' ? '.pdf,.ppt,.pptx' : '*'"
+            style="display:none" @change="handleFileSelect($event, 'content')" />
+          <div v-if="!newContent.fileName" class="drop-zone-inner">
+            <div class="drop-icon">📁</div>
+            <div class="drop-text">Drag & drop or <span class="drop-link">browse</span></div>
+            <div class="drop-hint">
+              {{ newContent.type === 'slide' ? 'PDF, PPT, PPTX' : 'Any file type' }}
+            </div>
+          </div>
+          <div v-else class="drop-zone-file">
+            <span class="file-icon">{{ newContent.type === 'slide' ? '📊' : '📄' }}</span>
+            <span class="file-name">{{ newContent.fileName }}</span>
+            <button class="remove-file" @click.stop="newContent.fileName = ''; newContent.url = ''">✕</button>
+          </div>
         </div>
       </div>
     </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" @click="showAddContent = false">Cancel</button>
+      <button class="btn btn-primary" @click="addContent" :disabled="addingContent">
+        {{ addingContent ? 'Adding…' : 'Add Content' }}
+      </button>
+    </div>
+  </div>
+</div>
 
     <!-- New Assignment -->
     <div v-if="showAddAssignment" class="modal-backdrop" @click.self="showAddAssignment = false">
@@ -268,21 +329,71 @@
     </div>
 
     <!-- Submit Assignment -->
-    <div v-if="showSubmit" class="modal-backdrop" @click.self="showSubmit = false">
-      <div class="modal">
-        <div class="modal-header"><h3>Submit: {{ selectedAssignment?.title }}</h3><button class="close-btn" @click="showSubmit = false">✕</button></div>
-        <div class="modal-body">
-          <div v-if="submitError" class="alert alert-error">{{ submitError }}</div>
-          <div class="form-group"><label class="form-label">Submission Link / Notes</label>
-            <textarea v-model="submission.content" class="form-control" rows="4" placeholder="Paste your GitHub / Drive link or notes…"></textarea>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-outline" @click="showSubmit = false">Cancel</button>
-          <button class="btn btn-primary" @click="submitAssignment" :disabled="submitting">{{ submitting ? 'Submitting…' : 'Submit' }}</button>
+    <!-- Submit Assignment -->
+<div v-if="showSubmit" class="modal-backdrop" @click.self="showSubmit = false">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Submit: {{ selectedAssignment?.title || selectedAssignment?.assignmentName }}</h3>
+      <button class="close-btn" @click="showSubmit = false">✕</button>
+    </div>
+    <div class="modal-body">
+      <div v-if="submitError" class="alert alert-error">{{ submitError }}</div>
+
+      <!-- Submission type toggle -->
+      <div class="form-group">
+        <label class="form-label">Submission Type</label>
+        <div class="type-selector">
+          <button :class="['type-btn', submitType==='link'&&'active']" @click="submitType='link'">🔗 Link</button>
+          <button :class="['type-btn', submitType==='file'&&'active']" @click="submitType='file'">📄 File Upload</button>
         </div>
       </div>
+
+      <!-- Link submission -->
+      <div v-if="submitType === 'link'" class="form-group">
+        <label class="form-label">Link (GitHub, Drive, etc.)</label>
+        <input v-model="submission.content" class="form-control" placeholder="https://github.com/…" />
+      </div>
+
+      <!-- File submission drag-and-drop -->
+      <div v-else class="form-group">
+        <label class="form-label">Upload File</label>
+        <div
+          class="drop-zone"
+          :class="{ 'drag-over': draggingSubmit }"
+          @dragover.prevent="draggingSubmit = true"
+          @dragleave="draggingSubmit = false"
+          @drop.prevent="handleFileDrop($event, 'submit')"
+          @click="$refs.submitFileInput.click()"
+        >
+          <input ref="submitFileInput" type="file" style="display:none"
+            @change="handleFileSelect($event, 'submit')" />
+          <div v-if="!submission.fileName" class="drop-zone-inner">
+            <div class="drop-icon">📤</div>
+            <div class="drop-text">Drag & drop or <span class="drop-link">browse</span></div>
+            <div class="drop-hint">Any file type accepted</div>
+          </div>
+          <div v-else class="drop-zone-file">
+            <span class="file-icon">📄</span>
+            <span class="file-name">{{ submission.fileName }}</span>
+            <button class="remove-file" @click.stop="submission.fileName = ''; submission.content = ''">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Notes (optional)</label>
+        <textarea v-model="submission.notes" class="form-control" rows="2"
+          placeholder="Any notes for your lecturer…"></textarea>
+      </div>
     </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" @click="showSubmit = false">Cancel</button>
+      <button class="btn btn-primary" @click="submitAssignment" :disabled="submitting">
+        {{ submitting ? 'Submitting…' : 'Submit' }}
+      </button>
+    </div>
+  </div>
+</div>
 
     <!-- Grade Submissions -->
     <div v-if="showGrade" class="modal-backdrop" @click.self="showGrade = false">
@@ -371,28 +482,97 @@ const COLORS = ['#3a6186','#89216b','#1c6c3a','#7b4397','#c0392b','#16a085','#2c
 const heroColor = computed(() => COLORS[String(courseCode.value).charCodeAt(0) % COLORS.length])
 
 // Content
+// Content
 const contentItems   = ref([])
 const contentLoading = ref(false)
 const showAddContent = ref(false)
-const newContent     = ref({ title: '', type: 'link', url: '', section: '' })
+const contentError   = ref('')
+const addingContent  = ref(false)
+const dragging       = ref(false)
+const draggingSubmit = ref(false)
+const newContent     = ref({ title: '', type: 'link', url: '', section: '', fileName: '' })
+
 const groupedContent = computed(() => {
+  // backend returns sections array with contentItems
+  if (contentItems.value.length && contentItems.value[0]?.secName) {
+    return contentItems.value.map(s => ({
+      name: s.secName,
+      items: (s.contentItems || []).map(i => ({
+        id:    i.contentID,
+        title: i.contentName,
+        type:  i.type,
+        url:   i.content,
+      }))
+    }))
+  }
+  // fallback flat list
   const map = {}
   contentItems.value.forEach(item => {
-    const s = item.section || 'General'
+    const s = item.section || item.secName || 'General'
     if (!map[s]) map[s] = { name: s, items: [] }
     map[s].items.push(item)
   })
   return Object.values(map)
 })
+
 const contentIcon = t => ({ link: '🔗', file: '📄', slide: '📊', video: '🎥' }[t] || '📄')
-const addContent = async () => {
-  try {
-    const res = await contentService.create({ ...newContent.value, courseCode: courseCode.value })
-    contentItems.value.push(res.data)
-    showAddContent.value = false
-    newContent.value = { title: '', type: 'link', url: '', section: '' }
-  } catch { alert('Failed to add content.') }
+
+const handleFileDrop = (e, target) => {
+  const file = e.dataTransfer.files[0]
+  if (!file) return
+  if (target === 'content') {
+    dragging.value = false
+    newContent.value.fileName = file.name
+    newContent.value.url = file.name // store filename as content since no file server
+  } else {
+    draggingSubmit.value = false
+    submission.value.fileName = file.name
+    submission.value.content = file.name
+  }
 }
+
+const handleFileSelect = (e, target) => {
+  const file = e.target.files[0]
+  if (!file) return
+  if (target === 'content') {
+    newContent.value.fileName = file.name
+    newContent.value.url = file.name
+  } else {
+    submission.value.fileName = file.name
+    submission.value.content = file.name
+  }
+}
+
+const addContent = async () => {
+  contentError.value = ''
+  if (!newContent.value.section || !newContent.value.title) {
+    contentError.value = 'Section name and title are required.'
+    return
+  }
+  addingContent.value = true
+  try {
+    const secRes = await contentService.createSection({
+      courseCode: courseCode.value,
+      secName: newContent.value.section,
+    })
+    await contentService.createItem({
+      secID:       secRes.data.secID,
+      contentName: newContent.value.title,
+      type:        newContent.value.type,
+      content:     newContent.value.url,
+    })
+    // reload
+    const r = await contentService.getByCourse(courseCode.value)
+    contentItems.value = r.data.sections || r.data.content || r.data
+    showAddContent.value = false
+    newContent.value = { title: '', type: 'link', url: '', section: '', fileName: '' }
+  } catch (e) {
+    contentError.value = e.response?.data?.error || 'Failed to add content.'
+  } finally { addingContent.value = false }
+}
+
+// Submission type
+const submitType = ref('link')
 
 // Assignments
 const assignments    = ref([])
@@ -420,7 +600,13 @@ const statusBadge = a => {
   if ((a.due_date||a.dueDate) && new Date(a.due_date||a.dueDate) < new Date()) return { cls: 'badge-red', label: 'Overdue' }
   return { cls: 'badge-grey', label: 'Open' }
 }
-const openSubmit = a => { selectedAssignment.value = a; submission.value = { content: '' }; submitError.value = ''; showSubmit.value = true }
+const openSubmit = a => {
+  selectedAssignment.value = a
+  submission.value = { content: '', fileName: '', notes: '' }
+  submitType.value = 'link'
+  submitError.value = ''
+  showSubmit.value = true
+}
 const openGrade  = async a => {
   selectedAssignment.value = a; gradeSubmissions.value = []; showGrade.value = true
   try { const r = await assignmentService.getSubmissions(a.id || a.assignmentID); gradeSubmissions.value = (r.data.submissions||r.data).map(s=>({...s,inputGrade:s.grade||''})) } catch {}
@@ -512,6 +698,8 @@ const createEvent = async () => {
 
 
 // Admin
+const lecturers       = ref([])
+const lecturersLoading= ref(false)
 const assignForm = ref({ lecturerId: '' })
 const doAssignLecturer = async () => {
   try {
@@ -558,6 +746,16 @@ const loadTab = async tab => {
     try { const r = await eventService.getByCourse(code); events.value = r.data.events||r.data } catch {}
     eventsLoading.value = false
   }
+
+// update loadTab to fetch lecturers when admin tab opens
+if (tab === 'admin' && !lecturers.value.length) {
+  lecturersLoading.value = true
+  try {
+    const r = await courseService.getLecturers()
+    lecturers.value = r.data.lecturers || r.data
+  } catch {}
+  lecturersLoading.value = false
+}
 }
 
 watch(activeTab, loadTab)
@@ -572,6 +770,8 @@ onMounted(async () => {
   } finally { loading.value = false }
   loadTab('content')
 })
+
+
 </script>
 
 <style scoped>
@@ -682,4 +882,42 @@ onMounted(async () => {
 .modal-body { padding: 20px 24px; }
 .modal-footer { padding: 14px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
 .mt-1 { margin-top: 4px; }
+
+/* Type selector */
+.type-selector { display: flex; gap: 8px; }
+.type-btn {
+  flex: 1; padding: 8px 12px; border: 1.5px solid var(--border);
+  border-radius: 8px; background: white; cursor: pointer;
+  font-size: 13px; font-weight: 500; color: var(--text-muted);
+  transition: all .15s; font-family: 'DM Sans', sans-serif;
+}
+.type-btn:hover { border-color: var(--primary); color: var(--primary); }
+.type-btn.active { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+
+/* Drop zone */
+.drop-zone {
+  border: 2px dashed var(--border); border-radius: var(--radius);
+  padding: 32px 20px; text-align: center; cursor: pointer;
+  transition: all .2s; background: var(--surface);
+}
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: var(--primary); background: var(--primary-light);
+}
+.drop-zone-inner { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.drop-icon { font-size: 32px; }
+.drop-text { font-size: 14px; font-weight: 500; color: var(--text); }
+.drop-link { color: var(--primary); text-decoration: underline; }
+.drop-hint { font-size: 12px; color: var(--text-muted); }
+.drop-zone-file { display: flex; align-items: center; gap: 10px; justify-content: center; }
+.file-icon { font-size: 24px; }
+.file-name { font-size: 14px; font-weight: 500; color: var(--text); }
+.remove-file {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-muted); font-size: 16px; padding: 2px 6px;
+  border-radius: 4px; transition: background .12s;
+}
+.remove-file:hover { background: var(--surface-2); color: var(--danger); }
+.spinner-sm { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin .7s linear infinite; margin: 8px 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>
+

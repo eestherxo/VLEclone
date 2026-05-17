@@ -64,7 +64,7 @@ const login = async () => {
     localStorage.clear()
     localStorage.setItem('token', res.data.access_token)
     localStorage.setItem('user', JSON.stringify(res.data.user))
-    router.push('/dashboard')
+    router.push('/home')
 
   } catch (e) {
     error.value =

@@ -51,6 +51,7 @@ getMyCourses: () => {
                                                  }),
   assignLecturer:    (lecturerId, courseCode) => api.post('/courses/assign-lecturer', { lecturerId, courseCode }),
   getMembers:        (courseCode)             => api.get(`/courses/members/${courseCode}`),
+  getLecturers: () => api.get('/courses/lecturers'),
 }
 
 // ── Assignments ───────────────────────────────────────────────
@@ -72,10 +73,18 @@ export const assignmentService = {
 // ── Course Content ────────────────────────────────────────────
 // Backend: GET /content/course/<code>, POST /content/create
 export const contentService = {
-  getByCourse: (courseCode) => api.get(`/content/course/${courseCode}`),
-  create:      (data)       => api.post('/content/create', data),
+  getByCourse:   (courseCode) => api.get(`/content/course/${courseCode}`),
+  createSection: (data)       => api.post('/content/section/create', {
+                                    courseCode: data.courseCode,
+                                    secName:    data.section || data.secName,
+                                  }),
+  createItem:    (data)       => api.post('/content/section/item/create', {
+                                    secID:       data.secID,
+                                    contentName: data.title || data.contentName,
+                                    type:        data.type,
+                                    content:     data.url || data.content,
+                                  }),
 }
-
 // ── Forums ────────────────────────────────────────────────────
 // Backend: GET  /forums/course/<code>
 //          POST /forums/create
@@ -83,19 +92,21 @@ export const contentService = {
 //          POST /forums/<id>/threads
 //          POST /forums/threads/<id>/reply
 export const forumService = {
-  getByCourse:  (courseCode)         => api.get(`/forums/course/${courseCode}`),
-  create:       (data)               => api.post('/forums/create', {
-                                          courseCode: data.courseCode,
-                                          forumName:  data.title || data.forumName,
-                                        }),
-  getThreads:   (forumId)            => api.get(`/forums/${forumId}/threads`),
-  createThread: (forumId, data)      => api.post(`/forums/${forumId}/threads`, {
-                                          title:   data.title,
-                                          content: data.content,
-                                        }),
-  reply:        (threadId, data)     => api.post(`/forums/threads/${threadId}/reply`, {
-                                          content: data.content,
-                                        }),
+  getByCourse:  (courseCode)       => api.get(`/forums/course/${courseCode}`),
+  create:       (data)             => api.post('/forums/course', {        // was /forums/create
+                                        courseCode: data.courseCode,
+                                        forumName:  data.title || data.forumName,
+                                      }),
+  getThreads:   (forumId)          => api.get(`/threads/forum/${forumId}`),     // was /forums/${forumId}/threads
+  createThread: (forumId, data)    => api.post('/threads/', {                   // was /forums/${forumId}/threads
+                                        forumID:     forumId,
+                                        threadTitle: data.title,
+                                        content:     data.content,
+                                      }),
+  reply:        (threadId, data)   => api.post(`/threads/reply/${threadId}`, {  // was /forums/threads/${threadId}/reply
+                                        content: data.content,
+                                      }),
+  getReplies:   (threadId)         => api.get(`/threads/reply/${threadId}`),    // new — was missing
 }
 
 // ── Calendar Events ───────────────────────────────────────────

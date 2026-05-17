@@ -2,28 +2,20 @@ from app.db import get_connection
 
 def get_all_forums(course_code):
     connection = get_connection()
-    
     cursor = connection.cursor(dictionary=True)
-    query = "SELECT forumName FROM Forum WHERE courseCode = %s"
-    cursor.execute(query, (course_code,))
-    
+    cursor.execute("SELECT forumID, forumName FROM Forum WHERE courseCode = %s", (course_code,))
     forums = cursor.fetchall()
     cursor.close()
     connection.close()
-    
     return forums
 
 def get_forum(forum_id):
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
-    
-    query = "SELECT forumName FROM Forum WHERE forumID = %s"
-    cursor.execute(query, (forum_id,))
-    
+    cursor.execute("SELECT forumID, forumName FROM Forum WHERE forumID = %s", (forum_id,))
     forum = cursor.fetchone()
     cursor.close()
     connection.close()
-    
     return forum
 
 def create_forum(course_code, forum_name):
