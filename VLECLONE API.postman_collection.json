@@ -1,0 +1,967 @@
+{
+  "info": {
+    "_postman_id": "133009b2-f10b-40a1-99c4-b74f06889068",
+    "name": "VLE CLONE API COLLECTION",
+    "description": "VLE clone API postman collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "53218713"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register Student",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"userID\": 801350,\r\n    \"Name\": \"Michael Stult\",\r\n    \"password\": \"word@123\",\r\n    \"role\": \"Student\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/auth/register",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Student Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"userID\": 801350,\r\n  \"password\": \"word@123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register Lecturer",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"userID\": 777552,\r\n    \"Name\": \"Sandy Squirrel\",\r\n    \"password\": \"bik!n!Bott0M\",\r\n    \"role\": \"Lecturer\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/auth/register",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lecturer Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"userID\": 777552,\r\n  \"password\": \"bik!n!Bott0M\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Admin Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"userID\": 999999,\r\n  \"password\": \"admin123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Courses",
+      "item": [
+        {
+          "name": "Create Course",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTA2NTExNSwianRpIjoiN2ZlNzkxMWEtOGQxMS00OWM3LTg3NTktMzZmYzdiMDNkOTM5IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Ijk5OTk5OSIsIm5iZiI6MTc3OTA2NTExNSwiY3NyZiI6IjJlZWIzOTExLWY5M2ItNDJiOS05YmVlLTMzODk5NjMxNjAzNyIsImV4cCI6MTc3OTA2NjAxNX0.GtOcKdXZnh4HPeTakQw-kzOAn6jzvSjJtQrsB8thG0Q",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"courseCode\": \"COMP3110\",\r\n  \"courseName\": \"API Integration\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/courses/create",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "courses",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Courses",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTA2NTExNSwianRpIjoiN2ZlNzkxMWEtOGQxMS00OWM3LTg3NTktMzZmYzdiMDNkOTM5IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Ijk5OTk5OSIsIm5iZiI6MTc3OTA2NTExNSwiY3NyZiI6IjJlZWIzOTExLWY5M2ItNDJiOS05YmVlLTMzODk5NjMxNjAzNyIsImV4cCI6MTc3OTA2NjAxNX0.GtOcKdXZnh4HPeTakQw-kzOAn6jzvSjJtQrsB8thG0Q",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/courses/all",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "courses",
+                "all"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Course Members",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTA2NTExNSwianRpIjoiN2ZlNzkxMWEtOGQxMS00OWM3LTg3NTktMzZmYzdiMDNkOTM5IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Ijk5OTk5OSIsIm5iZiI6MTc3OTA2NTExNSwiY3NyZiI6IjJlZWIzOTExLWY5M2ItNDJiOS05YmVlLTMzODk5NjMxNjAzNyIsImV4cCI6MTc3OTA2NjAxNX0.GtOcKdXZnh4HPeTakQw-kzOAn6jzvSjJtQrsB8thG0Q",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/courses/members/MATH0010",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "courses",
+                "members",
+                "MATH0010"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Enrol Student",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTA2NDkzOSwianRpIjoiOTMzNzA5NWItOTMxYy00YzA3LWFjZjItZTdiN2M5MWFiMjRjIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjgwMTM1MCIsIm5iZiI6MTc3OTA2NDkzOSwiY3NyZiI6IjI1MGZjYWEwLTIyYWQtNDY5NS05OWZiLTIwMGQwNzg0NzViNyIsImV4cCI6MTc3OTA2NTgzOX0.kUOYwgjyBicrBpfrtfjjROD77sV2DF5P70DaLNRU_mg",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"studentID\": 801350,\r\n    \"courseCode\": \"COMP3110\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/courses/enroll-student",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "courses",
+                "enroll-student"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Student Courses",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTA2NDkzOSwianRpIjoiOTMzNzA5NWItOTMxYy00YzA3LWFjZjItZTdiN2M5MWFiMjRjIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjgwMTM1MCIsIm5iZiI6MTc3OTA2NDkzOSwiY3NyZiI6IjI1MGZjYWEwLTIyYWQtNDY5NS05OWZiLTIwMGQwNzg0NzViNyIsImV4cCI6MTc3OTA2NTgzOX0.kUOYwgjyBicrBpfrtfjjROD77sV2DF5P70DaLNRU_mg",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/courses/student/888888",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "courses",
+                "student",
+                "888888"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Lecturer",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTA2NTExNSwianRpIjoiN2ZlNzkxMWEtOGQxMS00OWM3LTg3NTktMzZmYzdiMDNkOTM5IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Ijk5OTk5OSIsIm5iZiI6MTc3OTA2NTExNSwiY3NyZiI6IjJlZWIzOTExLWY5M2ItNDJiOS05YmVlLTMzODk5NjMxNjAzNyIsImV4cCI6MTc3OTA2NjAxNX0.GtOcKdXZnh4HPeTakQw-kzOAn6jzvSjJtQrsB8thG0Q",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"lecturerId\": 777552,\r\n  \"courseCode\": \"COMP3110\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/courses/assign-lecturer",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "courses",
+                "assign-lecturer"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Lecturer Courses",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTA2NTExNSwianRpIjoiN2ZlNzkxMWEtOGQxMS00OWM3LTg3NTktMzZmYzdiMDNkOTM5IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Ijk5OTk5OSIsIm5iZiI6MTc3OTA2NTExNSwiY3NyZiI6IjJlZWIzOTExLWY5M2ItNDJiOS05YmVlLTMzODk5NjMxNjAzNyIsImV4cCI6MTc3OTA2NjAxNX0.GtOcKdXZnh4HPeTakQw-kzOAn6jzvSjJtQrsB8thG0Q",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/courses/lecturer/777777",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "courses",
+                "lecturer",
+                "777777"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Calendar",
+      "item": [
+        {
+          "name": "Create Calendar Event",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTA2ODI0MywianRpIjoiNzAxODQ5YzEtYWY1Ny00OTk3LTk0MDYtZGNhMTg5MDJiOTg4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Ijc3NzU1MiIsIm5iZiI6MTc3OTA2ODI0MywiY3NyZiI6IjdlODQyMWQ1LTUwYTUtNDQ0OS1iYWQ5LTdhYzkxZjk3YTA4NCIsImV4cCI6MTc3OTA2OTE0M30.ZRyCfmabMEO91KrjtgTjVu2PKBRWC7i4nS5UsmmOu30",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"courseCode\": \"COMP3110\",\r\n  \"eventName\": \"Quiz 1\",\r\n  \"createdDate\": \"2026-05-16\",\r\n  \"dueDate\": \"2026-05-20 23:59:00\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/events/course",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "events",
+                "course"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Course Events",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTA2ODAwOCwianRpIjoiY2UzNTc4ZDUtZDNkMC00NmNmLThhMTYtZmRkM2M3MjRjNTgwIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjgwMTM1MCIsIm5iZiI6MTc3OTA2ODAwOCwiY3NyZiI6ImIyYjE2NTA1LWNjZDMtNGRhNS1hMTJmLWQ5ZGYyZmNmZDFkMSIsImV4cCI6MTc3OTA2ODkwOH0.MEGl-pU2VprJCgw_A7EwqPwsJrXCO-W3RHsaCEaNp3c",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/events/course/COMP3110",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "events",
+                "course",
+                "COMP3110"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Student Events by Date",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTA2ODQxNSwianRpIjoiMzcwYTkwMzItYzFmYS00OTVlLWI0OWYtNTJlNzFkZmJkYTliIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjgwMTM1MCIsIm5iZiI6MTc3OTA2ODQxNSwiY3NyZiI6Ijk3OGNmODViLWRmZWItNDZkMC04MzMzLWFkMjkwZDJhNzdhZiIsImV4cCI6MTc3OTA2OTMxNX0.PWAuRv6UX1SBxU80Vbl6IygmW2vEgcIVde5QHL-3ucE",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/events/student/801350/date/2026-05-20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "events",
+                "student",
+                "801350",
+                "date",
+                "2026-05-20"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Assignment",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTA3MDE0NSwianRpIjoiNmE0MTk2NzktODcxNi00ZDBiLTkwYjgtMWJjNDBlZDQ2ODA4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Ijc3NzU1MiIsIm5iZiI6MTc3OTA3MDE0NSwiY3NyZiI6ImM3OGEyMzkzLTNiYTgtNGEyNi1iNWJiLTFlZDFmNWM2ZTJjNyIsImV4cCI6MTc3OTA3MTA0NX0.O_tkEcUwiwD8dUIdZFsBIQRlX92rOjhOltfqcn9xLPY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"eventID\": 1\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/events/assignment",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "events",
+                "assignment"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Assignment",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTA3MDI3OSwianRpIjoiODM4M2JkZjYtNjQzOS00NDQyLWE3MmQtNGRlODczNDQyMjkzIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjgwMTM1MCIsIm5iZiI6MTc3OTA3MDI3OSwiY3NyZiI6ImM1YjE5ZjIyLTE4NzMtNGE5Ni04OTZiLWNhZmIyYmY0MDkzNCIsImV4cCI6MTc3OTA3MTE3OX0.ygzAFUOKUwRdCaJigCfYTL3cquRKZs5jRZg1ZSp5ydE",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"studentID\": 810530,\r\n  \"assignmentID\": 1,\r\n  \"filePath\": \"uploads/file1.pdf\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/events/assignment/submit",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "events",
+                "assignment",
+                "submit"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Grade Assignment",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTA3MDM3OSwianRpIjoiZTJlZTg2YWYtNDM2ZS00ZDU3LWE4NDYtODlmOGI4MzQ4NmE2IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Ijc3NzU1MiIsIm5iZiI6MTc3OTA3MDM3OSwiY3NyZiI6IjA2YmJjODE5LTBiYTYtNDAxMi04ODcxLTZmZjU5NjA5NGNlNiIsImV4cCI6MTc3OTA3MTI3OX0.6Sp44SZe8DT9hkxbrBWI5jdj8oscQcbI4l9ED5zQtAo",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"studentID\": 810530,\r\n  \"assignmentID\": 1,\r\n  \"grade\": 85\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/events/assignment/grade",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "events",
+                "assignment",
+                "grade"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Forums/Threads",
+      "item": [
+        {
+          "name": "Create Forum",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTA2NzIxNiwianRpIjoiNGYyY2NiZGEtYmI0NC00MmQ3LWIwZmEtZWY0OWE4MTkyZjk3IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Ijc3NzU1MiIsIm5iZiI6MTc3OTA2NzIxNiwiY3NyZiI6ImUwNDQxZDdjLTllYTgtNDA2OC04OGE2LTgzNTQ4YzczYTE0MCIsImV4cCI6MTc3OTA2ODExNn0.kh7W_NXfyH7sxaZTSk4f4BQHyo8cXhbB_fAPixL6Nkg",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"courseCode\": \"COMP3110\",\r\n  \"forumName\": \"Tuesday Tutorial\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/forums/course",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "forums",
+                "course"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Forums for Course",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTA2NzIxNiwianRpIjoiNGYyY2NiZGEtYmI0NC00MmQ3LWIwZmEtZWY0OWE4MTkyZjk3IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Ijc3NzU1MiIsIm5iZiI6MTc3OTA2NzIxNiwiY3NyZiI6ImUwNDQxZDdjLTllYTgtNDA2OC04OGE2LTgzNTQ4YzczYTE0MCIsImV4cCI6MTc3OTA2ODExNn0.kh7W_NXfyH7sxaZTSk4f4BQHyo8cXhbB_fAPixL6Nkg",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/forums/course/COMP3110",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "forums",
+                "course",
+                "COMP3110"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Thread",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTA2OTE2OCwianRpIjoiNDllYTI3NmUtMTIwNy00MjMzLTg4NjQtYzdlNGViNDIzYWJhIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Ijc3NzU1MiIsIm5iZiI6MTc3OTA2OTE2OCwiY3NyZiI6ImM2OTRhMzg0LWE3NmEtNDVjOS1iMjM1LWJkY2MzNDAwMWM1MSIsImV4cCI6MTc3OTA3MDA2OH0.i0I3mGvf1gnaQtexb9cJXjR1B0Xure1BXNU32OLTEkg",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"forumID\": 202,\r\n  \"threadTitle\": \"Tuesday Tutorial\",\r\n  \"content\": \"Not seeing a time for Tuesday\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/threads/forums/create",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "threads",
+                "forums",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Threads in Forum",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTA2OTE2OCwianRpIjoiNDllYTI3NmUtMTIwNy00MjMzLTg4NjQtYzdlNGViNDIzYWJhIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Ijc3NzU1MiIsIm5iZiI6MTc3OTA2OTE2OCwiY3NyZiI6ImM2OTRhMzg0LWE3NmEtNDVjOS1iMjM1LWJkY2MzNDAwMWM1MSIsImV4cCI6MTc3OTA3MDA2OH0.i0I3mGvf1gnaQtexb9cJXjR1B0Xure1BXNU32OLTEkg",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/threads/forum/202",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "threads",
+                "forum",
+                "202"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reply to Thread",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3ODk5MzQyNiwianRpIjoiYmQ1ZGRiNzMtMmE1MC00MjZiLWFiNDEtOGI0OWEyMDZiODY3IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjMyMTE2MCIsIm5iZiI6MTc3ODk5MzQyNiwiY3NyZiI6IjliYTI3MzBjLWYxNTMtNGZmYy1hYjFhLTgyOWYzNjRlMzhhOSIsImV4cCI6MTc3ODk5NDMyNn0.zXqCp781as5C4Qt_VhoYv38GobC13PooT8B0uUE0FNU",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "Get {\r\n  \"content\": \"This is a reply\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/threads/reply/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "threads",
+                "reply",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Replies",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3ODk5MzQyNiwianRpIjoiYmQ1ZGRiNzMtMmE1MC00MjZiLWFiNDEtOGI0OWEyMDZiODY3IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjMyMTE2MCIsIm5iZiI6MTc3ODk5MzQyNiwiY3NyZiI6IjliYTI3MzBjLWYxNTMtNGZmYy1hYjFhLTgyOWYzNjRlMzhhOSIsImV4cCI6MTc3ODk5NDMyNn0.zXqCp781as5C4Qt_VhoYv38GobC13PooT8B0uUE0FNU",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/threads/reply/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "threads",
+                "reply",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Content",
+      "item": [
+        {
+          "name": "Create Section",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTA2NjA2NCwianRpIjoiYTljYjQyMGEtN2RlNi00YWEyLWE3YTktM2Y0YTQ4YTczMGRmIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Ijc3NzU1MiIsIm5iZiI6MTc3OTA2NjA2NCwiY3NyZiI6IjM1YzY3NjQ4LWI5NjMtNDZjZC1iNTQwLTE1MzlkMTg4MTY2NSIsImV4cCI6MTc3OTA2Njk2NH0.2GWefqvZelXmd4JhmRIHAxpUvuRQxFxpJPLzpg6_1Hs",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"courseCode\": \"COMP3110\",\r\n  \"secName\": \"Week 1 Introduction\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/content/section/create",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "content",
+                "section",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Course Content Item",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTA2OTE2OCwianRpIjoiNDllYTI3NmUtMTIwNy00MjMzLTg4NjQtYzdlNGViNDIzYWJhIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Ijc3NzU1MiIsIm5iZiI6MTc3OTA2OTE2OCwiY3NyZiI6ImM2OTRhMzg0LWE3NmEtNDVjOS1iMjM1LWJkY2MzNDAwMWM1MSIsImV4cCI6MTc3OTA3MDA2OH0.i0I3mGvf1gnaQtexb9cJXjR1B0Xure1BXNU32OLTEkg",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"secID\": 403,\r\n  \"contentName\": \"Lecture Slides\",\r\n  \"type\": \"slide\",\r\n  \"content\": \"https://example.com/slides.pdf\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:5000/content/section/item/create",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "content",
+                "section",
+                "item",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Course Content",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3OTA2OTE2OCwianRpIjoiNDllYTI3NmUtMTIwNy00MjMzLTg4NjQtYzdlNGViNDIzYWJhIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6Ijc3NzU1MiIsIm5iZiI6MTc3OTA2OTE2OCwiY3NyZiI6ImM2OTRhMzg0LWE3NmEtNDVjOS1iMjM1LWJkY2MzNDAwMWM1MSIsImV4cCI6MTc3OTA3MDA2OH0.i0I3mGvf1gnaQtexb9cJXjR1B0Xure1BXNU32OLTEkg",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/content/course/MATH0010",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "content",
+                "course",
+                "MATH0010"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
