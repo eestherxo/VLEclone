@@ -51,6 +51,7 @@ CREATE TABLE Enroll (
     FOREIGN KEY (courseCode) REFERENCES Course(courseCode)
 );
 
+-- One course has exactly one lecturer, but a lecturer can teach multiple courses
 CREATE TABLE Teaches (
     lecturerID INT,
     courseCode VARCHAR(25) UNIQUE,
@@ -66,6 +67,8 @@ CREATE TABLE Section (
     courseCode VARCHAR(25),
     secName VARCHAR(255),
     FOREIGN KEY (courseCode) REFERENCES Course(courseCode)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
 
 CREATE TABLE CourseContent (
@@ -74,7 +77,7 @@ CREATE TABLE CourseContent (
     contentName VARCHAR(255),
     type ENUM('link', 'file', 'slide'),
     content TEXT,
-    FOREIGN KEY (secID) REFERENCES Section(secID)
+    FOREIGN KEY (secID) REFERENCES Section(secID) 
 );
 
 -- =================== FORUM SYSTEM ===================
@@ -109,7 +112,7 @@ CREATE TABLE CalendarEvent (
     courseCode VARCHAR(25),
     eventName VARCHAR(255),
     createdDate DATE,
-    dueDate DATE,
+    dueDate DATETIME,
     FOREIGN KEY (courseCode) REFERENCES Course(courseCode)
 );
 
@@ -117,6 +120,8 @@ CREATE TABLE Assignment (
     assignmentID INT PRIMARY KEY,
     maxGrade INT DEFAULT 100,
     FOREIGN KEY (assignmentID) REFERENCES CalendarEvent(eventID)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
 
 CREATE TABLE Submission (
@@ -178,10 +183,10 @@ FROM (
 CREATE OR REPLACE VIEW vw_top_10_students_averages AS
 SELECT *
 FROM (
-    SELECT studentID, ROUND(AVG(grade), 2) AS overall_average
+    SELECT studentID, ROUND(AVG(score), 2) AS averageGrade
     FROM Grade
     GROUP BY studentID
-    ORDER BY overall_average DESC
+    ORDER BY averageGrade DESC
     LIMIT 10
 ) AS top_students;
 

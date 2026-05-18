@@ -5,7 +5,7 @@ def get_popular_courses():
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
 
-    query = "SELECT * FROM PopularCourses ORDER BY studentCount DESC"
+    query = "SELECT * FROM vw_courses_high_enrollment ORDER BY total_students DESC"
     cursor.execute(query)
     courses = cursor.fetchall()
 
@@ -20,7 +20,7 @@ def get_busy_students():
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
 
-    query = "SELECT * FROM BusyStudents ORDER BY courseCount DESC"
+    query = "SELECT * FROM vw_students_heavy_load ORDER BY total_courses DESC"
     cursor.execute(query)
     students = cursor.fetchall()
 
@@ -35,7 +35,7 @@ def get_busy_lecturers():
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
 
-    query = "SELECT * FROM BusyLecturers ORDER BY courseCount DESC"
+    query = "SELECT * FROM vw_lecturers_heavy_load ORDER BY total_courses DESC"
     cursor.execute(query)
     lecturers = cursor.fetchall()
 
@@ -50,7 +50,7 @@ def get_most_enrolled_courses():
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
 
-    query = "SELECT * FROM TopEnrolledCourses ORDER BY studentCount DESC"
+    query = "SELECT * FROM vw_top_10_enrolled_courses ORDER BY total_students DESC"
     cursor.execute(query)
     courses = cursor.fetchall()
 
@@ -65,7 +65,7 @@ def get_top_students():
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
 
-    query = "SELECT * FROM TopStudents ORDER BY averageGrade DESC"
+    query = "SELECT * FROM vw_top_10_students_averages ORDER BY overall_average DESC"
     cursor.execute(query)
     students = cursor.fetchall()
 

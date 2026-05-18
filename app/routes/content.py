@@ -8,20 +8,6 @@ content_bp = Blueprint("content", __name__, url_prefix="/content")
 
 ALLOWED_TYPES = {"link", "file", "slide"}
 
-# Create a new section
-@content_bp.get("/course/<course_code>")
-@jwt_required()
-def get_content(course_code):
-    user_id = get_jwt_identity()
-    user = get_user(user_id)
-    if not user:
-        return {"error": "Unauthorized"}, 401
-    try:
-        sections = get_course_content_by_course(course_code)
-        return {"courseCode": course_code, "sections": sections}, 200
-    except Exception as e:
-        return {"error": str(e)}, 400
-
 @content_bp.post("/section/create")
 @jwt_required()
 def create_section():
@@ -52,7 +38,7 @@ def create_course_content():
     content      = request.json.get("content")
     if not sec_id or not content_name or not content_type or not content:
         return {"error": "Missing required fields"}, 400
-    if content_type.lower() not in {"link", "file", "slide"}:
+    if content_type.lower() not in ALLOWED_TYPES:
         return {"error": "Invalid type. Must be link, file, or slide"}, 400
     try:
         content_id = insert_course_content(

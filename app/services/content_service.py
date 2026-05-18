@@ -102,22 +102,6 @@ def get_course_content_by_course(course_code):
             })
     return list(sections.values())
 
-
-def lecturer_teaches_course(user_id, course_code):
-    """True if this lecturer is assigned to the course via the Teach table."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            "SELECT 1 FROM Teach WHERE userID = %s AND courseCode = %s",
-            (user_id, course_code),
-        )
-        return cursor.fetchone() is not None
-    finally:
-        cursor.close()
-        conn.close()
-
-
 def get_course_code_for_section(sec_id):
     """Look up the parent course of a section."""
     conn = get_connection()
