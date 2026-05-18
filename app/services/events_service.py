@@ -59,39 +59,66 @@ def create_assignment(event_id):
 
 
 def submit_assignment(student_id, assignment_id, file_path):
-    """Student submits an assignment"""
     connection = get_connection()
     cursor = connection.cursor()
-
-    query = "INSERT INTO Submission (studentID, assignmentID, filePath) VALUES (%s, %s, %s)"
-    cursor.execute(query, (student_id, assignment_id, file_path))
-
-    connection.commit()
-    cursor.close()
-    connection.close()
+    try:
+        # check if already submitted
+        cursor.execute(
+            "SELECT filePath FROM Submission WHERE studentID = %s AND assignmentID = %s",
+            (student_id, assignment_id)
+        )
+        existing = cursor.fetchone()
+        if existing:
+            # update instead of insert
+            cursor.execute(
+                "UPDATE Submission SET filePath = %s WHERE studentID = %s AND assignmentID = %s",
+                (file_path, student_id, assignment_id)
+            )
+        else:
+            cursor.execute(
+                "INSERT INTO Submission (studentID, assignmentID, filePath) VALUES (%s, %s, %s)",
+                (student_id, assignment_id, file_path)
+            )
+        connection.commit()
+    finally:
+        cursor.close()
+        connection.close()
 
 
 def grade_assignment(lecturer_id, assignment_id, student_id, grade_value):
-    """Lecturer grades a student's assignment"""
     connection = get_connection()
     cursor = connection.cursor()
+    try:
+        # Verify student submitted
+        cursor.execute(
+            "SELECT filePath FROM Submission WHERE studentID = %s AND assignmentID = %s",
+            (student_id, assignment_id)
+        )
+        if not cursor.fetchone():
+            raise Exception("Student has not submitted this assignment")
 
-    # Verify student submitted the assignment
-    verify_query = "SELECT filePath FROM Submission WHERE studentID = %s AND assignmentID = %s"
-    cursor.execute(verify_query, (student_id, assignment_id))
-    if not cursor.fetchone():
+        # Insert or update grade
+        cursor.execute(
+            """INSERT INTO Grade (lecID, assignmentID, studentID, gradeValue) 
+               VALUES (%s, %s, %s, %s)
+               ON DUPLICATE KEY UPDATE gradeValue = %s""",
+            (lecturer_id, assignment_id, student_id, grade_value, grade_value)
+        )
+        connection.commit()
+    finally:
         cursor.close()
         connection.close()
-        raise Exception("Student has not submitted this assignment")
 
-    # Insert grade record
-    query = "INSERT INTO Grade (lecID, assignmentID) VALUES (%s, %s)"
-    cursor.execute(query, (lecturer_id, assignment_id))
-
-    # Update the grade value in Assignment table
-    update_query = "UPDATE Assignment SET grade = %s WHERE assignmentID = %s"
-    cursor.execute(update_query, (grade_value, assignment_id))
-
-    connection.commit()
-    cursor.close()
-    connection.close()
+def lecturer_owns_event(lecturer_id, event_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            SELECT 1 FROM CalendarEvent ce
+            JOIN Teach t ON ce.courseCode = t.courseCode
+            WHERE ce.eventID = %s AND t.lecID = %s
+        """, (event_id, lecturer_id))
+        return cursor.fetchone() is not None
+    finally:
+        cursor.close()
+        conn.close()

@@ -3,10 +3,13 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from app.services.user_service import get_user
 from app.services.content_service import *
+from flask import send_from_directory
+import os
 
 content_bp = Blueprint("content", __name__, url_prefix="/content")
 
 ALLOWED_TYPES = {"link", "file", "slide"}
+UPLOAD_FOLDER = 'uploads'
 
 # Create a new section
 @content_bp.get("/course/<course_code>")
@@ -59,3 +62,17 @@ def create_course_content():
         return {"message": "Content added successfully", "contentID": content_id}, 201
     except Exception as e:
         return {"error": str(e)}, 400
+UPLOAD_FOLDER = 'uploads'
+
+@content_bp.post('/upload')
+@jwt_required()
+def upload_file():
+    file = request.files['file']
+    filename = file.filename
+    file.save(os.path.join(UPLOAD_FOLDER, filename))
+    url = f'/content/files/{filename}'
+    return {"url": url}, 200
+
+@content_bp.get('/files/<filename>')
+def serve_file(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename)
