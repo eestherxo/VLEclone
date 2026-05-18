@@ -101,7 +101,7 @@ def get_course_content_by_course(course_code):
                 "content": row["content"],
             })
     return list(sections.values())
-
+  
 def get_course_code_for_section(sec_id):
     """Look up the parent course of a section."""
     conn = get_connection()

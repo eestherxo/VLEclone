@@ -155,11 +155,11 @@ const reportTabs = [
 ]
 
 const COLS = {
-  large_courses:  ['courseCode',  'courseName', 'student_count'],
-  busy_students:  ['student_id',  'username',   'course_count'],
-  busy_lecturers: ['lecturer_id', 'username',   'course_count'],
-  top_enrolled:   ['courseCode',  'courseName', 'enrolments'],
-  top_students:   ['student_id',  'username',   'average_grade'],
+  large_courses:  ['courseCode',  'courseName', 'studentCount'],
+  busy_students:  ['student_id',  'username',   'courseCount'],
+  busy_lecturers: ['lecturer_id', 'username',   'courseCount'],
+  top_enrolled:   ['courseCode',  'courseName', 'studentCount'],
+  top_students:   ['student_id',  'username',   'averageGrade'],
 }
 
 const COL_LABELS = {
@@ -171,11 +171,11 @@ const COL_LABELS = {
 }
 
 const REPORT_URLS = {
-  large_courses:  '/reports/large-courses',
-  busy_students:  '/reports/busy-students',
-  busy_lecturers: '/reports/busy-lecturers',
-  top_enrolled:   '/reports/top-enrolled',
-  top_students:   '/reports/top-students',
+  large_courses:  '/reports/courses/popular',
+  busy_students:  '/reports/students/busy',
+  busy_lecturers: '/reports/lecturers/busy',
+  top_enrolled:   '/reports/courses/most-enrolled',
+  top_students:   '/reports/students/top',
 }
 
 const currentCols   = computed(() => COLS[activeReport.value]       || [])
@@ -185,7 +185,8 @@ const loadReport = async (key) => {
   reportLoading.value = true
   try {
     const res = await api.get(REPORT_URLS[key])
-    reportData.value = res.data.data || res.data
+    // each endpoint returns a different key
+    reportData.value = res.data.courses || res.data.students || res.data.lecturers || res.data.data || res.data
   } catch {
     reportData.value = []
   } finally { reportLoading.value = false }
