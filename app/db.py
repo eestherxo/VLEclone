@@ -1,24 +1,20 @@
 import os
 from dotenv import load_dotenv
 import mysql.connector
+from urllib.parse import urlparse
 
 
 load_dotenv()
 
-config = {
-    "JWT_SECRET_KEY": os.getenv("JWT_SECRET_KEY"),
-    "DB_HOST": os.getenv("DB_HOST"),
-    "DB_USER": os.getenv("DB_USER"),
-    "DB_PASSWORD": os.getenv("DB_PASSWORD"),
-    "DB_NAME": os.getenv("DB_NAME"),
-}
+db_url = urlparse(os.getenv("DB_URL"))
 
 
 def get_connection():
     connection = mysql.connector.connect(
-        host=config["DB_HOST"],
-        user=config["DB_USER"],
-        password=config["DB_PASSWORD"],
-        database=config["DB_NAME"]
+        host=db_url.hostname,
+        user=db_url.username,
+        password=db_url.password,
+        database=db_url.path[1:],
+        port=db_url.port
     )
     return connection
