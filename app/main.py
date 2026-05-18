@@ -1,7 +1,7 @@
 from flask import Flask 
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
-from .db import config
+import os
 from .routes import auth_bp, course_bp, event_bp, forum_bp, thread_bp, content_bp, assignment_bp, report_bp
 
 
@@ -11,7 +11,7 @@ app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173, https://vl-eclone.vercel.app"])
 
 # JWT Configuration
-app.config['JWT_SECRET_KEY'] = config["JWT_SECRET_KEY"]
+app.config['JWT_SECRET_KEY'] = os.getenv("JWT_SECRET_KEY")
 jwt = JWTManager(app)
 
 # Endpoints
