@@ -8,7 +8,7 @@ from .routes import auth_bp, course_bp, event_bp, forum_bp, thread_bp, content_b
 app = Flask(__name__)
 
 # CORS Configuration
-CORS(app, origins=["http://localhost:5173, https://vl-eclone.vercel.app/home"])
+CORS(app, origins=["http://localhost:5173, https://vl-eclone.vercel.app"])
 
 # JWT Configuration
 app.config['JWT_SECRET_KEY'] = config["JWT_SECRET_KEY"]
