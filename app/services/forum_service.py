@@ -1,5 +1,15 @@
 from app.db import get_connection
 
+def lecturer_teaches_course(lecturer_id, course_code):
+    """Check if a lecturer teaches the given course"""
+    connection = get_connection()
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM Teach WHERE lecID = %s AND courseCode = %s", (lecturer_id, course_code))
+    result = cursor.fetchone()
+    cursor.close()
+    connection.close()
+    return result is not None
+
 def get_all_forums(course_code):
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)

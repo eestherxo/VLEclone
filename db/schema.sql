@@ -115,6 +115,7 @@ CREATE TABLE Submission (
     studentID INT,
     assignmentID INT,
     filePath VARCHAR(255),
+    score INT DEFAULT 0,
     PRIMARY KEY (studentID, assignmentID),
     FOREIGN KEY (studentID) REFERENCES Student(studentID),
     FOREIGN KEY (assignmentID) REFERENCES Assignment(assignmentID)

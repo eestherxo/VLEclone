@@ -6,7 +6,6 @@ import CoursePage from '../views/CoursePage.vue'
 import Assignments from '../views/Assignments.vue'
 import Forums from '../views/Forums.vue'
 import ThreadView from '../views/ThreadView.vue'
-import AdminPanel from '../views/AdminPanel.vue'
 import Home from '../views/Home.vue'
 import MyCourses from '../views/MyCourses.vue'
 
@@ -20,7 +19,6 @@ const routes = [
   { path: '/course/:id/assignments',       component: Assignments,  meta: { auth: true } },
   { path: '/course/:id/forums',            component: Forums,       meta: { auth: true } },
   { path: '/course/:id/forums/:forumId',   component: ThreadView,   meta: { auth: true } },
-  { path: '/admin',     component: AdminPanel, meta: { auth: true, role: 'admin' } },
   { path: '/my-courses', component: MyCourses, meta: { auth: true } },
 ]
 

@@ -1,6 +1,6 @@
 from flask import Blueprint, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from app.services.forum_service import get_all_forums, get_forum, create_forum, delete_forum
+from app.services.forum_service import get_all_forums, get_forum, create_forum, delete_forum, lecturer_teaches_course
 from app.services.user_service import get_user
 
 forum_bp = Blueprint("forum", __name__, url_prefix="/forums")
