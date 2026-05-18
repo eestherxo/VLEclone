@@ -1,0 +1,3 @@
+Admin Login: ID: 110001 password: Admin123
+Student:  ID: 100607 password: %^6sVQiF
+Lecturer: ID: 576774 password: 0z()1!Oq
