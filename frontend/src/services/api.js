@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'https://vleclone-zny0.onrender.com',
+  baseURL: '/api',
   headers: { 'Content-Type': 'application/json' }
 })
 
