@@ -76,8 +76,7 @@ def submit_assignment_endpoint():
         submit_assignment(student_id, assignment_id, file_path)
         return {"message": "Assignment submitted successfully"}, 201
     except Exception as e:
-        return {"error": str(e)}, 400
-    
+        return {"error": str(e)}, 400  # 👈 this was missing
 
 @event_bp.post("/assignment/grade")
 @jwt_required()
@@ -97,13 +96,13 @@ def grade_assignment_endpoint():
 
     if not lecturer_owns_event(user_id, assignment_id):
         return {"error": "You do not have permission to grade this assignment"}, 403
+
     try:
         grade_assignment(user_id, assignment_id, student_id, grade_value)
         return {"message": "Assignment graded successfully"}, 201
     except Exception as e:
         return {"error": str(e)}, 400
-
-
+    
 @event_bp.post("/assignment")
 @jwt_required()
 def create_assignment_endpoint():

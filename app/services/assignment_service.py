@@ -1,17 +1,39 @@
 from app.db import get_connection
 
 
-def get_assignments_by_course(course_code):
+def get_assignments_by_course(course_code, student_id=None):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
-    query = """
-        SELECT ce.eventID AS assignmentID, ce.eventName AS assignmentName,
-               ce.dueDate, ce.courseCode
-        FROM CalendarEvent ce
-        JOIN Assignment a ON ce.eventID = a.assignmentID
-        WHERE ce.courseCode = %s
-    """
-    cursor.execute(query, (course_code,))
+    
+    if student_id:
+        query = """
+            SELECT 
+                ce.eventID AS assignmentID,
+                ce.eventName AS assignmentName,
+                ce.dueDate,
+                ce.courseCode,
+                s.filePath AS my_submission,
+                (SELECT COUNT(*) FROM Submission WHERE assignmentID = ce.eventID) AS submission_count
+            FROM CalendarEvent ce
+            JOIN Assignment a ON ce.eventID = a.assignmentID
+            LEFT JOIN Submission s ON s.assignmentID = ce.eventID AND s.studentID = %s
+            WHERE ce.courseCode = %s
+        """
+        cursor.execute(query, (student_id, course_code))
+    else:
+        query = """
+            SELECT 
+                ce.eventID AS assignmentID,
+                ce.eventName AS assignmentName,
+                ce.dueDate,
+                ce.courseCode,
+                (SELECT COUNT(*) FROM Submission WHERE assignmentID = ce.eventID) AS submission_count
+            FROM CalendarEvent ce
+            JOIN Assignment a ON ce.eventID = a.assignmentID
+            WHERE ce.courseCode = %s
+        """
+        cursor.execute(query, (course_code,))
+    
     assignments = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -55,17 +77,16 @@ def grade_assignment(lecturer_id, assignment_id, student_id, grade_value):
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        # check submission exists
         cursor.execute(
             "SELECT filePath FROM Submission WHERE studentID = %s AND assignmentID = %s",
             (student_id, assignment_id)
         )
         if not cursor.fetchone():
             raise Exception("Student has not submitted this assignment")
-
         cursor.execute(
-            "INSERT INTO Grade (lecID, assignmentID, studentID, gradeValue) VALUES (%s, %s, %s, %s) "
-            "ON DUPLICATE KEY UPDATE gradeValue = %s",
+            """INSERT INTO Grade (lecID, assignmentID, studentID, gradeValue) 
+               VALUES (%s, %s, %s, %s)
+               ON DUPLICATE KEY UPDATE gradeValue = %s""",
             (lecturer_id, assignment_id, student_id, grade_value, grade_value)
         )
         conn.commit()
@@ -73,15 +94,15 @@ def grade_assignment(lecturer_id, assignment_id, student_id, grade_value):
         cursor.close()
         conn.close()
 
-
 def get_submissions(assignment_id):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     query = """
-        SELECT s.studentID AS student_id,
-               CONCAT(u.firstName, ' ', u.lastName) AS username,
-               s.filePath AS content,
-               g.gradeValue AS grade
+        SELECT 
+            s.studentID AS student_id,
+            CONCAT(u.firstName, ' ', u.lastName) AS username,
+            s.filePath AS content,
+            g.gradeValue AS grade
         FROM Submission s
         JOIN User u ON s.studentID = u.userID
         LEFT JOIN Grade g ON s.studentID = g.studentID AND s.assignmentID = g.assignmentID

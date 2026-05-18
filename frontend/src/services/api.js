@@ -59,18 +59,23 @@ getMyCourses: () => {
 //          /assignments/<id>/submit, /assignments/<id>/grade/<studentId>
 //          /assignments/<id>/submissions
 export const assignmentService = {
-  getByCourse:    (courseCode)                     => api.get(`/assignments/course/${courseCode}`),
-  create:         (data)                           => api.post('/assignments/create', {
-                                                        courseCode:     data.courseCode,
-                                                        assignmentName: data.title || data.assignmentName,
-                                                        dueDate:        data.due_date || data.dueDate,
-                                                      }),
-  submit: (assignmentId, data) => api.post(`/assignments/${assignmentId}/submit`, {
-  content:  data.content,
-  filePath: data.content,  // backend accepts either
+  getByCourse:    (courseCode)                    => api.get(`/assignments/course/${courseCode}`),
+  create:         (data)                          => api.post('/assignments/create', {
+                                                       courseCode:     data.courseCode,
+                                                       assignmentName: data.title || data.assignmentName,
+                                                       dueDate:        data.due_date || data.dueDate,
+                                                     }),
+  submit: (assignmentId, data) => api.post('/events/assignment/submit', {
+  assignmentID: assignmentId,
+  studentID:    JSON.parse(localStorage.getItem('user')||'{}').id,
+  filePath:     data.content || data.filePath,
 }),
-  grade:          (assignmentId, studentId, data)  => api.post(`/assignments/${assignmentId}/grade/${studentId}`, data),
-  getSubmissions: (assignmentId)                   => api.get(`/assignments/${assignmentId}/submissions`),
+  grade:          (assignmentId, studentId, data) => api.post('/events/assignment/grade', {
+                                                       assignmentID: assignmentId,
+                                                       studentID:    studentId,
+                                                       grade:        data.grade,
+                                                     }),
+  getSubmissions: (assignmentId)                  => api.get(`/assignments/${assignmentId}/submissions`),
 }
 
 // ── Course Content ────────────────────────────────────────────

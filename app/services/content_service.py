@@ -104,12 +104,11 @@ def get_course_content_by_course(course_code):
 
 
 def lecturer_teaches_course(user_id, course_code):
-    """True if this lecturer is assigned to the course via the Teach table."""
     conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "SELECT 1 FROM Teach WHERE userID = %s AND courseCode = %s",
+            "SELECT 1 FROM Teach WHERE lecID = %s AND courseCode = %s",  # was userID
             (user_id, course_code),
         )
         return cursor.fetchone() is not None

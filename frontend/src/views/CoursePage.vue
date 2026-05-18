@@ -399,26 +399,40 @@
 
     <!-- Grade Submissions -->
     <div v-if="showGrade" class="modal-backdrop" @click.self="showGrade = false">
-      <div class="modal modal-lg">
-        <div class="modal-header"><h3>Grade: {{ selectedAssignment?.title }}</h3><button class="close-btn" @click="showGrade = false">✕</button></div>
-        <div class="modal-body">
-          <div v-if="!gradeSubmissions.length" class="empty-tab">No submissions yet.</div>
-          <div v-else>
-            <div v-for="s in gradeSubmissions" :key="s.student_id" class="grade-row">
-              <div class="student-info">
-                <div class="student-avatar">{{ String(s.username || s.student_id || '?').slice(0,2).toUpperCase() }}</div>
-                <span class="font-medium">{{ s.username || s.student_id }}</span>
-              </div>
-              <div class="sub-content text-sm text-muted">{{ String(s.content || '').slice(0, 60) }}…</div>
-              <div class="grade-input-wrap">
-                <input v-model="s.inputGrade" type="number" min="0" max="100" class="form-control grade-input" placeholder="0–100" />
-                <button class="btn btn-primary btn-sm" @click="submitGrade(s)">Save</button>
-              </div>
-            </div>
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3>Grade: {{ selectedAssignment?.title || selectedAssignment?.assignmentName }}</h3>
+      <button class="close-btn" @click="showGrade = false">✕</button>
+    </div>
+    <div class="modal-body">
+      <div v-if="!gradeSubmissions.length" class="empty-tab">No submissions yet.</div>
+      <div v-else>
+        <div v-for="s in gradeSubmissions" :key="s.student_id" class="grade-row">
+          <div class="student-info">
+            <div class="student-avatar">{{ String(s.username || s.student_id || '?').slice(0,2).toUpperCase() }}</div>
+            <span class="font-medium">{{ s.username || s.student_id }}</span>
+          </div>
+          <div class="sub-content text-sm">
+            <a v-if="s.content && s.content.startsWith('http')"
+               :href="s.content" target="_blank" class="btn btn-outline btn-sm">
+              🔗 View Submission
+            </a>
+            <span v-else class="text-muted">📎 {{ s.content || 'No submission' }}</span>
+          </div>
+          <span v-if="s.grade !== null && s.grade !== undefined"
+                class="badge badge-green" style="margin-right:8px">
+            Graded: {{ s.grade }}%
+          </span>
+          <div class="grade-input-wrap">
+            <input v-model="s.inputGrade" type="number" min="0" max="100"
+              class="form-control grade-input" placeholder="0–100" />
+            <button class="btn btn-primary btn-sm" @click="submitGrade(s)">Save</button>
           </div>
         </div>
       </div>
     </div>
+  </div>
+</div>
 
     <!-- New Forum -->
     <div v-if="showAddForum" class="modal-backdrop" @click.self="showAddForum = false">
@@ -734,51 +748,56 @@ const formatDate = d => d ? new Date(d).toLocaleDateString('en-JM',{year:'numeri
 // Lazy load tab data
 const loadTab = async tab => {
   const code = courseCode.value
-  if (tab==='content' && !contentItems.value.length) {
-  contentLoading.value = true
-  try { 
-    const r = await contentService.getByCourse(code)
-    contentItems.value = r.data.sections || r.data.content || r.data  // was r.data.content||r.data
-  } catch {}
-  contentLoading.value = false
-    }
-  if (tab==='assignments' && !assignments.value.length) {
+
+  if (tab === 'content' && !contentItems.value.length) {
+    contentLoading.value = true
+    try {
+      const r = await contentService.getByCourse(code)
+      contentItems.value = r.data.sections || r.data.content || r.data
+    } catch {}
+    contentLoading.value = false
+  }
+
+  if (tab === 'assignments') {
   assignLoading.value = true
   try {
     const r = await assignmentService.getByCourse(code)
-    assignments.value = (r.data.assignments || r.data).map(a => ({
-      ...a,
-      title: a.assignmentName || a.title,
-      id:    a.assignmentID   || a.id,
-    }))
+   assignments.value = (r.data.assignments || r.data).map(a => ({
+  ...a,
+  title:            a.assignmentName  || a.title,
+  id:               a.assignmentID    || a.id,
+  my_submission:    a.my_submission   || null,
+  submission_count: a.submission_count || 0,
+}))
   } catch {}
   assignLoading.value = false
 }
-  if (tab==='forums' && !forums.value.length) {
+  if (tab === 'forums' && !forums.value.length) {
     forumLoading.value = true
-    try { const r = await forumService.getByCourse(code); forums.value = r.data.forums||r.data } catch {}
+    try { const r = await forumService.getByCourse(code); forums.value = r.data.forums || r.data } catch {}
     forumLoading.value = false
   }
-  if (tab==='members' && !members.value.length) {
+
+  if (tab === 'members' && !members.value.length) {
     membersLoading.value = true
-    try { const r = await courseService.getMembers(code); members.value = r.data.members||r.data } catch {}
+    try { const r = await courseService.getMembers(code); members.value = r.data.members || r.data } catch {}
     membersLoading.value = false
   }
-  if (tab==='calendar' && !events.value.length) {
+
+  if (tab === 'calendar' && !events.value.length) {
     eventsLoading.value = true
-    try { const r = await eventService.getByCourse(code); events.value = r.data.events||r.data } catch {}
+    try { const r = await eventService.getByCourse(code); events.value = r.data.events || r.data } catch {}
     eventsLoading.value = false
   }
 
-// update loadTab to fetch lecturers when admin tab opens
-if (tab === 'admin' && !lecturers.value.length) {
-  lecturersLoading.value = true
-  try {
-    const r = await courseService.getLecturers()
-    lecturers.value = r.data.lecturers || r.data
-  } catch {}
-  lecturersLoading.value = false
-}
+  if (tab === 'admin' && !lecturers.value.length) {
+    lecturersLoading.value = true
+    try {
+      const r = await courseService.getLecturers()
+      lecturers.value = r.data.lecturers || r.data
+    } catch {}
+    lecturersLoading.value = false
+  }
 }
 
 watch(activeTab, loadTab)

@@ -12,8 +12,12 @@ assignment_bp = Blueprint("assignments", __name__, url_prefix="/assignments")
 @assignment_bp.get("/course/<course_code>")
 @jwt_required()
 def get_course_assignments(course_code):
+    user_id = get_jwt_identity()
+    user = get_user(user_id)
     try:
-        assignments = get_assignments_by_course(course_code)
+        # pass student_id only for students
+        student_id = user_id if user and user["role"].lower() == "student" else None
+        assignments = get_assignments_by_course(course_code, student_id)
         return {"assignments": assignments}, 200
     except Exception as e:
         return {"error": str(e)}, 400

@@ -28,27 +28,23 @@ def fetch_forum(forum_id):
 @jwt_required() 
 def add_forum():
     user_id = get_jwt_identity()  
-<<<<<<< HEAD
-    user = get_user(user_id)
-    print(f"DEBUG: user_id={user_id}, user={user}")  # 👈 add this
-    if not user or user["role"].lower() not in ['lecturer', 'admin']:
-        return {"error": "Only lecturers or admins can create forums"}, 403
-=======
     user = get_user(user_id) 
-    if not user or user["role"].lower() != "lecturer":  
-        return {"error": "Only lecturers can create forums"}, 403
->>>>>>> f252c1a3d4b29efd644fb6d271fb82e89ae52a8b
-    
-    # Check if the lecturer teaches the specified course
+
+    if not user or user["role"].lower() not in ['lecturer', 'admin']:  
+        return {"error": "Only lecturers or admins can create forums"}, 403
+
     course_code = request.json.get("courseCode", None)
-    if not lecturer_teaches_course(user_id, course_code):
-        return {"error": "You are not assigned to teach this course"}, 403
+    forum_name  = request.json.get("forumName", None)
+
+    if not course_code or not forum_name:
+        return {"error": "Missing required fields"}, 400
+
+    # only check if lecturer — admins can manage any course
+    if user["role"].lower() == 'lecturer':
+        if not lecturer_teaches_course(user_id, course_code):
+            return {"error": "You are not assigned to teach this course"}, 403
 
     try:
-        course_code = request.json.get("courseCode", None)
-        forum_name = request.json.get("forumName", None)
-        if not course_code or not forum_name:
-            return {"error": "Missing required fields"}, 400
         create_forum(course_code, forum_name)
         return {"message": "Forum created successfully"}, 201
     except Exception as e:
