@@ -96,11 +96,11 @@ def get_top_students():
             SELECT 
                 u.userID AS student_id,
                 CONCAT(u.firstName, ' ', u.lastName) AS username,
-                ROUND(AVG(sub.score), 2) AS averageGrade
+                ROUND(AVG(g.gradeValue), 2) AS averageGrade
             FROM User u
             JOIN Student s ON s.studentID = u.userID
-            JOIN Submission sub ON sub.studentID = u.userID
-            WHERE sub.score > 0
+            JOIN Grade g ON g.studentID = u.userID
+            WHERE g.gradeValue > 0
             GROUP BY u.userID, u.firstName, u.lastName
             ORDER BY averageGrade DESC
             LIMIT 10

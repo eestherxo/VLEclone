@@ -76,7 +76,7 @@ def assign_lecturer(lecturer_id, course_code):
     cursor.close()
     connection.close()
 
-def enroll_student(student_id, course_code):
+def insert_enrollment(student_id, course_code):
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
     cursor.execute("INSERT INTO Enroll (studentID, courseCode) VALUES (%s, %s)", (student_id, course_code))

@@ -22,7 +22,6 @@ CREATE TABLE Student (
 
 CREATE TABLE Lecturer (
     lecID INT PRIMARY KEY,
-    department VARCHAR(255),
     FOREIGN KEY (lecID) REFERENCES User(userID)
 );
 
@@ -107,7 +106,6 @@ CREATE TABLE CalendarEvent (
 
 CREATE TABLE Assignment (
     assignmentID INT PRIMARY KEY,
-    grade INT,
     FOREIGN KEY (assignmentID) REFERENCES CalendarEvent(eventID)
 );
 
@@ -115,7 +113,6 @@ CREATE TABLE Submission (
     studentID INT,
     assignmentID INT,
     filePath VARCHAR(255),
-    score INT DEFAULT 0,
     PRIMARY KEY (studentID, assignmentID),
     FOREIGN KEY (studentID) REFERENCES Student(studentID),
     FOREIGN KEY (assignmentID) REFERENCES Assignment(assignmentID)
@@ -124,9 +121,12 @@ CREATE TABLE Submission (
 CREATE TABLE Grade (
     lecID INT,
     assignmentID INT,
-    PRIMARY KEY (lecID, assignmentID),
+    studentID INT,
+    gradeValue INT,
+    PRIMARY KEY (lecID, assignmentID, studentID),
     FOREIGN KEY (lecID) REFERENCES Lecturer(lecID),
-    FOREIGN KEY (assignmentID) REFERENCES Assignment(assignmentID)
+    FOREIGN KEY (assignmentID) REFERENCES Assignment(assignmentID),
+    FOREIGN KEY (studentID) REFERENCES Student(studentID)
 );
 
 

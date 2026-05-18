@@ -99,9 +99,8 @@ with open('data.sql', 'w') as file:
 
     # Batch insert lecturers
     file.write("-- Insert Lecturers\n")
-    lecturer_values = [f"({lid}, '{fake.random_element(elements=departments)}')" 
-                       for lid in lecturer_ids]
-    batch_inserts(file, "Lecturer", "lecID, department", lecturer_values)
+    lecturer_values = [f"({lid})" for lid in lecturer_ids]
+    batch_inserts(file, "Lecturer", "lecID", lecturer_values)
 
     file.write("-- Insert Courses\n")
     course_names  = [f"{level} {subject}" for level in levels for subject in subjects]

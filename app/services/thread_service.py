@@ -43,13 +43,22 @@ def delete_thread(thread_id):
 def create_reply(parent_thread_id, content):
     connection = get_connection()
     cursor = connection.cursor(dictionary=True)
+
+    # Get the forumID from the parent thread
+    query = "SELECT forumID FROM Thread WHERE threadID = %s"
+    cursor.execute(query, (parent_thread_id,))
+    result = cursor.fetchone()
+
+    if not result:
+        cursor.close()
+        connection.close()
+        raise Exception("Parent thread not found")
+
+    forum_id = result["forumID"]
     
     # create new thread as the reply 
-    child_query = """INSERT INTO Thread (forumID, threadTitle, content) VALUES (
-        (SELECT forumID FROM Thread WHERE threadID = %s), 
-        'Reply', %s
-    )"""
-    cursor.execute(child_query, (parent_thread_id, content))
+    child_query = """INSERT INTO Thread (forumID, threadTitle, content) VALUES (%s,'Reply', %s )"""
+    cursor.execute(child_query, (forum_id, content))
 
     # new thread's ID will be the childThreadID in the Reply table
     child_thread_id = cursor.lastrowid

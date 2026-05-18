@@ -42,6 +42,8 @@ def insert_user(user_id, first_name, last_name, password, role):
         cursor.execute("INSERT INTO Student (studentID) VALUES (%s)", (user_id,))
     elif role.lower() == "lecturer":
         cursor.execute("INSERT INTO Lecturer (lecID) VALUES (%s)", (user_id,))
+    elif role.lower() == "admin":
+        cursor.execute("INSERT INTO Admin (adminID) VALUES (%s)", (user_id,))
 
     connection.commit()
     cursor.close()
