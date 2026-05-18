@@ -82,33 +82,21 @@ const COLS = {
 const currentCols = computed(() => COLS[activeReport.value] || [])
 const colKey = (col) => col.toLowerCase().replace(/ /g, '_')
 
+const REPORT_URLS = {
+  large_courses:  '/reports/courses/popular',
+  busy_students:  '/reports/students/busy',
+  busy_lecturers: '/reports/lecturers/busy',
+  top_enrolled:   '/reports/courses/most-enrolled',
+  top_students:   '/reports/students/top',
+}
+
 const loadReport = async (key) => {
   reportLoading.value = true
   try {
-    const res = await api.get(`/reports/${key}`)
-    reportData.value = res.data
+    const res = await api.get(REPORT_URLS[key])
+    reportData.value = res.data.courses || res.data.students || res.data.lecturers || res.data
   } catch {
-    // Demo fallback data
-    const demos = {
-      large_courses: [
-        { course_code: 'COMP3161', course_name: 'Intro to DBMS', student_count: 312 },
-        { course_code: 'COMP2211', course_name: 'Analysis of Algorithms', student_count: 289 },
-      ],
-      top_students: [
-        { student_id: 1, username: 'alice_92', average_grade: 94 },
-        { student_id: 2, username: 'bob_83', average_grade: 91 },
-      ],
-      top_enrolled: [
-        { course_code: 'COMP3161', course_name: 'Intro to DBMS', enrolments: 312 },
-      ],
-      busy_students: [
-        { student_id: 3, username: 'carol_j', course_count: 6 },
-      ],
-      busy_lecturers: [
-        { lecturer_id: 5, username: 'prof_williams', course_count: 5 },
-      ],
-    }
-    reportData.value = demos[key] || []
+    reportData.value = []
   } finally {
     reportLoading.value = false
   }

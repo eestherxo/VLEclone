@@ -61,25 +61,11 @@ const login = async () => {
       password: form.value.password,
     })
 
-    // ✅ Clear any previous user's data first
     localStorage.clear()
+    localStorage.setItem('token', res.data.access_token)
+    localStorage.setItem('user', JSON.stringify(res.data.user))
+    router.push('/home')
 
-    const token = res.data.access_token
-    localStorage.setItem('token', token)
-
-    try {
-      const meRes = await api.get('/auth/me')
-      localStorage.setItem('user', JSON.stringify(meRes.data))
-    } catch {
-      const payload = JSON.parse(atob(token.split('.')[1]))
-      localStorage.setItem('user', JSON.stringify({
-        id:       payload.sub,
-        username: String(payload.sub),
-        role:     payload.role || 'student',
-      }))
-    }
-
-    router.push('/dashboard')
   } catch (e) {
     error.value =
       e.response?.data?.error ||

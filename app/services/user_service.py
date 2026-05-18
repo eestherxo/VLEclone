@@ -14,26 +14,31 @@ def verify_user(user_id, password):
 
     if not user:
         return None
-
     
+    # Verify password 
+    try:
+        if checkpw(password.encode('utf-8'), user["password"].encode('utf-8')):
+            return user
+    except ValueError:
+        pass
+
     # Plain text comparison for dummy data
-    if user['password'] == password:
+    if user["password"] == password:
         return user
 
     return None
 
+
 def insert_user(user_id, first_name, last_name, password, role):
     connection = get_connection()
-    cursor = connection.cursor()
+    cursor = connection.cursor(dictionary=True)
 
     hashed_password = hashpw(password.encode('utf-8'), gensalt())
 
     query = "INSERT INTO User (userID, firstName, lastName, password, role) VALUES (%s, %s, %s, %s, %s)"
     cursor.execute(query, (user_id, first_name, last_name, hashed_password.decode('utf-8'), role))
 
-    if role.lower() == "admin":
-        cursor.execute("INSERT INTO Admin (adminID) VALUES (%s)", (user_id,))
-    elif role.lower() == "student":
+    if role.lower() == "student":
         cursor.execute("INSERT INTO Student (studentID) VALUES (%s)", (user_id,))
     elif role.lower() == "lecturer":
         cursor.execute("INSERT INTO Lecturer (lecturerID) VALUES (%s)", (user_id,))
@@ -54,6 +59,15 @@ def get_user(user_id):
     cursor.close()
     connection.close()
     return user
+
+def get_lecturers():
+    connection = get_connection()
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute("SELECT userID, firstName, lastName FROM User WHERE role = 'lecturer'")
+    lecturers = cursor.fetchall()
+    cursor.close()
+    connection.close()
+    return lecturers
 
 
 
