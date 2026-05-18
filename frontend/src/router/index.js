@@ -31,8 +31,15 @@ router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
   const user = JSON.parse(localStorage.getItem('user') || 'null')
 
- if (to.meta.guest && token) return next('/home')
-if (to.meta.role && user?.role !== to.meta.role) return next('/home')
+  // If guest route and user is authenticated, redirect to home
+  if (to.meta.guest && token) return next('/home')
+  
+  // If protected route and user is not authenticated, redirect to login
+  if (to.meta.auth && !token) return next('/login')
+  
+  // If role-specific route and user doesn't have that role, redirect to home
+  if (to.meta.role && user?.role !== to.meta.role) return next('/home')
+  
   next()
 })
 
